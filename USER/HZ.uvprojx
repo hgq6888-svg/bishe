@@ -610,21 +610,6 @@
               <FilePath>..\My_lin\TOUCH\touch.c</FilePath>
             </File>
             <File>
-              <FileName>hgq_ui_seat.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\My_lin\HGQ_UI_SEAT\hgq_ui_seat.c</FilePath>
-            </File>
-            <File>
-              <FileName>hgq_ui_seat_port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\My_lin\HGQ_UI_SEAT\hgq_ui_seat_port.c</FilePath>
-            </File>
-            <File>
-              <FileName>hgq_ui_dash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\My_lin\HGQ_UI_DASH\hgq_ui_dash.c</FilePath>
-            </File>
-            <File>
               <FileName>hgq_vl53l0x.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\My_lin\HGQ_V15310x\hgq_vl53l0x.c</FilePath>

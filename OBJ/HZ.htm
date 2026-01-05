@@ -3,7 +3,7 @@
 <title>Static Call Graph - [..\OBJ\HZ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image ..\OBJ\HZ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Mon Jan 05 15:31:52 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Mon Jan 05 19:32:43 2026
 <BR><P>
 <H3>Maximum Stack Usage =       1336 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -3291,7 +3291,7 @@ Global Symbols
 
 <P><STRONG><a name="[2ee]"></a>_printf_longlong_hex</STRONG> (Thumb, 0 bytes, Stack size 16 bytes, _printf_hex_int.o(.text), UNUSED)
 
-<P><STRONG><a name="[1ec]"></a>__printf</STRONG> (Thumb, 388 bytes, Stack size 40 bytes, __printf_flags_ss_wp.o(.text))
+<P><STRONG><a name="[1ec]"></a>__printf</STRONG> (Thumb, 308 bytes, Stack size 40 bytes, __printf_flags_wp.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40 + Unknown Stack Size
 <LI>Call Chain = __printf
 </UL>
@@ -3388,9 +3388,9 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_TOF_Event
 <LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_RC522
 <LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CMD_HandleKV
+<LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_get_lc_ctype
 <LI><a href="#[1a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
 <LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Scan
-<LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_get_lc_ctype
 </UL>
 
 <P><STRONG><a name="[2f3]"></a>__use_two_region_memory</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
@@ -3470,8 +3470,8 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 120 + Unknown Stack Size
 <LI>Call Chain = _printf_char_file &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_common
-<LI><a href="#[1f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ferror
+<BR>[Calls]<UL><LI><a href="#[1f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ferror
+<LI><a href="#[1e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_common
 </UL>
 <BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
@@ -3560,15 +3560,15 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[7e]"></a>__rt_locale</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, rt_locale_intlibspace.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_lib_init_lc_common
-<LI><a href="#[1fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_ctype_table
+<BR><BR>[Called By]<UL><LI><a href="#[1fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_ctype_table
+<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_lib_init_lc_common
 </UL>
 
 <P><STRONG><a name="[1b6]"></a>__hardfp_sqrt</STRONG> (Thumb, 122 bytes, Stack size 32 bytes, sqrt.o(i.__hardfp_sqrt))
 <BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = __hardfp_sqrt &rArr; _dsqrt &rArr; __fpl_dnaninf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__set_errno
-<LI><a href="#[200]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dsqrt
+<BR>[Calls]<UL><LI><a href="#[200]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dsqrt
+<LI><a href="#[1f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__set_errno
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Adjust
 </UL>
@@ -3589,9 +3589,9 @@ Global Symbols
 <P><STRONG><a name="[2ff]"></a>__aeabi_dadd</STRONG> (Thumb, 0 bytes, Stack size 16 bytes, daddsub_clz.o(x$fpl$dadd), UNUSED)
 
 <P><STRONG><a name="[201]"></a>_dadd</STRONG> (Thumb, 332 bytes, Stack size 16 bytes, daddsub_clz.o(x$fpl$dadd), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[202]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dsub1
-<LI><a href="#[203]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__fpl_dretinf
+<BR><BR>[Calls]<UL><LI><a href="#[203]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__fpl_dretinf
 <LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__fpl_dnaninf
+<LI><a href="#[202]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dsub1
 </UL>
 
 <P><STRONG><a name="[207]"></a>__fpl_dcmp_Inf</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, dcmpi.o(x$fpl$dcmpinf), UNUSED)
@@ -3654,12 +3654,12 @@ Global Symbols
 <P><STRONG><a name="[204]"></a>__fpl_dnaninf</STRONG> (Thumb, 156 bytes, Stack size 16 bytes, dnaninf.o(x$fpl$dnaninf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = __fpl_dnaninf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[208]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dmul
+<BR>[Called By]<UL><LI><a href="#[200]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dsqrt
+<LI><a href="#[208]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dmul
 <LI><a href="#[206]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dcmple
 <LI><a href="#[205]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dfixu
 <LI><a href="#[20d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dsub
 <LI><a href="#[201]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dadd
-<LI><a href="#[200]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dsqrt
 </UL>
 
 <P><STRONG><a name="[203]"></a>__fpl_dretinf</STRONG> (Thumb, 12 bytes, Stack size 0 bytes, dretinf.o(x$fpl$dretinf), UNUSED)
@@ -3700,8 +3700,8 @@ Global Symbols
 <P><STRONG><a name="[302]"></a>__aeabi_dsub</STRONG> (Thumb, 0 bytes, Stack size 32 bytes, daddsub_clz.o(x$fpl$dsub), UNUSED)
 
 <P><STRONG><a name="[20d]"></a>_dsub</STRONG> (Thumb, 464 bytes, Stack size 32 bytes, daddsub_clz.o(x$fpl$dsub), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[20c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dadd1
-<LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__fpl_dnaninf
+<BR><BR>[Calls]<UL><LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__fpl_dnaninf
+<LI><a href="#[20c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_dadd1
 </UL>
 
 <P><STRONG><a name="[1b7]"></a>__aeabi_f2d</STRONG> (Thumb, 0 bytes, Stack size 16 bytes, f2d.o(x$fpl$f2d))
