@@ -28,6 +28,15 @@ static int s_blink   = 0;
 /* ========== 记录亮度条矩形（给触摸用） ========== */
 static u16 s_bar_x1, s_bar_y1, s_bar_x2, s_bar_y2;
 
+/* ========== UI 缓存（减少重复全量绘制以提升响应） ========== */
+static HGQ_UI_Data s_cache;
+static u8 s_cache_init = 0;
+static char s_cache_time_hm[8];
+static char s_cache_weekday[8];
+static int s_last_bri_draw = -1;
+static int s_last_bri_text = -1;
+static u8 s_last_bar_enabled = 0xFF;
+
 /* ===========================================================
    GBK 提示词（不写中文常量，防 Keil/ARMCC 编码问题）
    =========================================================== */
@@ -103,6 +112,12 @@ static void HGQ_UI_DrawCard(int x1,int y1,int x2,int y2)
     LCD_Fill(x1,y1,x2,y2,HGQ_UI_C_CARD);
     POINT_COLOR = HGQ_UI_C_LINE;
     LCD_DrawRectangle(x1,y1,x2,y2);
+}
+
+static void HGQ_UI_ClearLine(int x1, int y, int w, int h)
+{
+    if(w <= 0 || h <= 0) return;
+    LCD_Fill(x1, y, x1 + w - 1, y + h - 1, HGQ_UI_C_CARD);
 }
 
 /* ========== 自动亮度映射（根据 lux -> 10~100） ========== */
@@ -394,8 +409,13 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_hm, const char *weekday)
     int env_w, seat_w;
     int x1,x2,x3,x4,x5,x6, light_w;
     int y0, y1, y2l;
+    int line_w_env, line_w_seat, line_w_light;
 
     u8 bar_enabled;
+    u8 top_dirty = 0;
+    u8 env_dirty = 0;
+    u8 seat_dirty = 0;
+    u8 light_dirty = 0;
 
     w = lcddev.width;
     h = lcddev.height;
@@ -415,9 +435,42 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_hm, const char *weekday)
     x5 = x4 + HGQ_UI_GAP + 1;
     x6 = w - HGQ_UI_GAP - 1;
     light_w = (x6 - x5 + 1);
+    line_w_env = env_w - 2 * HGQ_UI_PAD;
+    line_w_seat = seat_w - 2 * HGQ_UI_PAD;
+    line_w_light = light_w - 2 * HGQ_UI_PAD;
+
+    if(time_hm == NULL) time_hm = "";
+    if(weekday == NULL) weekday = "";
+
+    if(!s_cache_init)
+    {
+        memset(&s_cache, 0, sizeof(s_cache));
+        s_cache.temp_x10 = -100000;
+        s_cache.humi = -1;
+        s_cache.lux = -1;
+        s_cache.use_min = -1;
+        s_cache.auto_mode = 2;
+        s_cache.light_on = 2;
+        s_cache.bri_target = -1;
+        s_cache.esp_state = 0xFF;
+        s_cache.area_seat[0] = '\0';
+        s_cache.status[0] = '\0';
+        s_cache.next_time[0] = '\0';
+        s_cache_time_hm[0] = '\0';
+        s_cache_weekday[0] = '\0';
+        s_cache_init = 1;
+        top_dirty = env_dirty = seat_dirty = light_dirty = 1;
+    }
 
     /* 顶部栏 */
-    HGQ_UI_DrawTopBar(d, time_hm, weekday);
+    if(d->esp_state != s_cache.esp_state ||
+       strcmp(d->area_seat, s_cache.area_seat) != 0 ||
+       strcmp(time_hm, s_cache_time_hm) != 0 ||
+       strcmp(weekday, s_cache_weekday) != 0)
+    {
+        top_dirty = 1;
+    }
+    if(top_dirty) HGQ_UI_DrawTopBar(d, time_hm, weekday);
 
     /* 自动模式：根据光照更新目标亮度（仅在开灯时生效） */
     if(d->auto_mode && d->light_on)
@@ -438,44 +491,70 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_hm, const char *weekday)
     y2l = y1 + HGQ_UI_LINE_H;
 
     /* ========== 左卡：环境 ========== */
-    POINT_COLOR = HGQ_UI_C_TEXT;
-    BACK_COLOR  = HGQ_UI_C_CARD;
+    if(d->temp_x10 != s_cache.temp_x10 || d->humi != s_cache.humi || d->lux != s_cache.lux) env_dirty = 1;
+    if(env_dirty)
+    {
+        HGQ_UI_ClearLine(x1 + HGQ_UI_PAD, y0, line_w_env, 16);
+        HGQ_UI_ClearLine(x1 + HGQ_UI_PAD, y1, line_w_env, 16);
+        HGQ_UI_ClearLine(x1 + HGQ_UI_PAD, y2l, line_w_env, 16);
 
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y0,48,16,STR_T,16,0);
-    LCD_ShowNum((u16)(x1+52),(u16)y0,(u32)(d->temp_x10/10),2,16);
-    LCD_ShowString((u16)(x1+68),(u16)y0,8,16,16,(u8*)".");
-    LCD_ShowNum((u16)(x1+76),(u16)y0,(u32)(d->temp_x10%10),1,16);
-    LCD_ShowString((u16)(x1+84),(u16)y0,16,16,16,(u8*)"C");
+        POINT_COLOR = HGQ_UI_C_TEXT;
+        BACK_COLOR  = HGQ_UI_C_CARD;
 
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y1,48,16,STR_H,16,0);
-    LCD_ShowNum((u16)(x1+52),(u16)y1,(u32)d->humi,3,16);
-    LCD_ShowString((u16)(x1+80),(u16)y1,16,16,16,(u8*)"%");
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y0,48,16,STR_T,16,0);
+        LCD_ShowNum((u16)(x1+52),(u16)y0,(u32)(d->temp_x10/10),2,16);
+        LCD_ShowString((u16)(x1+68),(u16)y0,8,16,16,(u8*)".");
+        LCD_ShowNum((u16)(x1+76),(u16)y0,(u32)(d->temp_x10%10),1,16);
+        LCD_ShowString((u16)(x1+84),(u16)y0,16,16,16,(u8*)"C");
 
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y2l,48,16,STR_L,16,0);
-    LCD_ShowNum((u16)(x1+52),(u16)y2l,(u32)d->lux,4,16);
-    LCD_ShowString((u16)(x1+92),(u16)y2l,24,16,16,(u8*)"lx");
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y1,48,16,STR_H,16,0);
+        LCD_ShowNum((u16)(x1+52),(u16)y1,(u32)d->humi,3,16);
+        LCD_ShowString((u16)(x1+80),(u16)y1,16,16,16,(u8*)"%");
+
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y2l,48,16,STR_L,16,0);
+        LCD_ShowNum((u16)(x1+52),(u16)y2l,(u32)d->lux,4,16);
+        LCD_ShowString((u16)(x1+92),(u16)y2l,24,16,16,(u8*)"lx");
+    }
 
     /* ========== 中卡：座位 ========== */
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y0,48,16,STR_USED,16,0);
-    LCD_ShowNum((u16)(x3+52),(u16)y0,(u32)(d->use_min/60),2,16);
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+72),(u16)y0,40,16,STR_HOUR,16,0);
+    if(d->use_min != s_cache.use_min ||
+       strcmp(d->status, s_cache.status) != 0 ||
+       strcmp(d->next_time, s_cache.next_time) != 0)
+    {
+        seat_dirty = 1;
+    }
+    if(seat_dirty)
+    {
+        HGQ_UI_ClearLine(x3 + HGQ_UI_PAD, y0, line_w_seat, 16);
+        HGQ_UI_ClearLine(x3 + HGQ_UI_PAD, y1, line_w_seat, 16);
+        HGQ_UI_ClearLine(x3 + HGQ_UI_PAD, y2l, line_w_seat, 16);
 
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y1,48,16,STR_STAT,16,0);
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+52),(u16)y1,(u16)(seat_w-52-HGQ_UI_PAD),16,(u8*)d->status,16,0);
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y0,48,16,STR_USED,16,0);
+        LCD_ShowNum((u16)(x3+52),(u16)y0,(u32)(d->use_min/60),2,16);
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+72),(u16)y0,40,16,STR_HOUR,16,0);
 
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y2l,48,16,STR_NEXT,16,0);
-    LCD_ShowString((u16)(x3+52),(u16)y2l,(u16)(seat_w-52-HGQ_UI_PAD),16,16,(u8*)d->next_time);
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y1,48,16,STR_STAT,16,0);
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+52),(u16)y1,(u16)(seat_w-52-HGQ_UI_PAD),16,(u8*)d->status,16,0);
+
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y2l,48,16,STR_NEXT,16,0);
+        LCD_ShowString((u16)(x3+52),(u16)y2l,(u16)(seat_w-52-HGQ_UI_PAD),16,16,(u8*)d->next_time);
+    }
 
     /* ========== 右卡：灯光（模式 + 条 + %） ========== */
-    if(d->auto_mode)
+    if(d->auto_mode != s_cache.auto_mode || d->light_on != s_cache.light_on) light_dirty = 1;
+    if(light_dirty)
     {
-        POINT_COLOR = HGQ_UI_C_OK;  BACK_COLOR = HGQ_UI_C_CARD;
-        HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)y0,(u16)(light_w-2*HGQ_UI_PAD),16,STR_AUTO,16,0);
-    }
-    else
-    {
-        POINT_COLOR = HGQ_UI_C_WARN; BACK_COLOR = HGQ_UI_C_CARD;
-        HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)y0,(u16)(light_w-2*HGQ_UI_PAD),16,STR_MANU,16,0);
+        HGQ_UI_ClearLine(x5 + HGQ_UI_PAD, y0, line_w_light, 16);
+        if(d->auto_mode)
+        {
+            POINT_COLOR = HGQ_UI_C_OK;  BACK_COLOR = HGQ_UI_C_CARD;
+            HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)y0,(u16)(light_w-2*HGQ_UI_PAD),16,STR_AUTO,16,0);
+        }
+        else
+        {
+            POINT_COLOR = HGQ_UI_C_WARN; BACK_COLOR = HGQ_UI_C_CARD;
+            HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)y0,(u16)(light_w-2*HGQ_UI_PAD),16,STR_MANU,16,0);
+        }
     }
 
     /* 亮度条区域（记录矩形供触摸用） */
@@ -501,15 +580,30 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_hm, const char *weekday)
         bar_enabled = (u8)((d->auto_mode==0) && (d->light_on==1));
 
         /* 关灯时禁用显示 */
-        HGQ_UI_DrawBrightnessBar(bx1,by1,bx2,by2,s_bri_now,bar_enabled);
+        if(light_dirty || s_bri_now != s_last_bri_draw || bar_enabled != s_last_bar_enabled)
+        {
+            HGQ_UI_DrawBrightnessBar(bx1,by1,bx2,by2,s_bri_now,bar_enabled);
+            s_last_bri_draw = s_bri_now;
+            s_last_bar_enabled = bar_enabled;
+        }
     }
 
-    POINT_COLOR = HGQ_UI_C_TEXT;
-    BACK_COLOR  = HGQ_UI_C_CARD;
-    LCD_ShowNum((u16)(x5 + (light_w-30)/2),(u16)(y_bottom-26),(u32)s_bri_now,3,16);
-    LCD_ShowString((u16)(x5 + (light_w-30)/2 + 26),(u16)(y_bottom-26),12,16,16,(u8*)"%");
+    if(light_dirty || s_bri_now != s_last_bri_text)
+    {
+        HGQ_UI_ClearLine(x5 + (light_w-30)/2, y_bottom - 26, 40, 16);
+        POINT_COLOR = HGQ_UI_C_TEXT;
+        BACK_COLOR  = HGQ_UI_C_CARD;
+        LCD_ShowNum((u16)(x5 + (light_w-30)/2),(u16)(y_bottom-26),(u32)s_bri_now,3,16);
+        LCD_ShowString((u16)(x5 + (light_w-30)/2 + 26),(u16)(y_bottom-26),12,16,16,(u8*)"%");
+        s_last_bri_text = s_bri_now;
+    }
 
     /* 底部按钮：高亮当前模式/开关 */
-    HGQ_UI_DrawBottomButtons(d->auto_mode==0, d->auto_mode==1, d->light_on);
-}
+    if(light_dirty) HGQ_UI_DrawBottomButtons(d->auto_mode==0, d->auto_mode==1, d->light_on);
 
+    s_cache = *d;
+    strncpy(s_cache_time_hm, time_hm, sizeof(s_cache_time_hm) - 1);
+    s_cache_time_hm[sizeof(s_cache_time_hm) - 1] = '\0';
+    strncpy(s_cache_weekday, weekday, sizeof(s_cache_weekday) - 1);
+    s_cache_weekday[sizeof(s_cache_weekday) - 1] = '\0';
+}
