@@ -69,7 +69,7 @@ u16 TP_Read_AD(u8 CMD)
 }
 
 // 读取一个坐标值（X或Y），带滤波处理
-#define READ_TIMES 5   // 采样次数
+#define READ_TIMES 3   // 采样次数（降低采样次数提升响应速度）
 #define LOST_VAL 1     // 丢弃最大值和最小值的个数
 u16 TP_Read_XOY(u8 xy)
 {
@@ -111,7 +111,7 @@ u8 TP_Read_XY(u16 *x, u16 *y)
 }
 
 // 增强版坐标读取：连续两次采样，偏差在允许范围内才接受
-#define ERR_RANGE 50  // 允许的误差范围
+#define ERR_RANGE 40  // 允许的误差范围（适度收紧以减少抖动）
 u8 TP_Read_XY2(u16 *x, u16 *y)
 {
     u16 x1, y1;
