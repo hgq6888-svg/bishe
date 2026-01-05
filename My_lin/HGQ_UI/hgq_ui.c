@@ -2,7 +2,7 @@
 #include "text.h"
 #include <string.h>
 
-/* ========== ä¸»é¢˜é¢œè‰² ========== */
+/* ========== Ö÷ÌâÑÕÉ« ========== */
 #define HGQ_UI_C_BG        LGRAY
 #define HGQ_UI_C_TOP       DARKBLUE
 #define HGQ_UI_C_CARD      WHITE
@@ -13,7 +13,7 @@
 #define HGQ_UI_C_OK        GREEN
 #define HGQ_UI_C_WARN      YELLOW
 
-/* ========== æ¨ªå±å¸ƒå±€ï¼ˆILI9341 320x240ï¼‰ ========== */
+/* ========== ºáÆÁ²¼¾Ö£¨ILI9341 320x240£© ========== */
 #define HGQ_UI_TOP_H       28
 #define HGQ_UI_BOTTOM_H    40
 #define HGQ_UI_GAP         6
@@ -21,45 +21,54 @@
 #define HGQ_UI_FONT        16
 #define HGQ_UI_LINE_H      20
 
-/* ========== åŠ¨ç”»çŠ¶æ€ ========== */
+/* ========== ¶¯»­×´Ì¬ ========== */
 static int s_bri_now = 0;
 static int s_blink   = 0;
 
-/* ========== è®°å½•äº®åº¦æ¡çŸ©å½¢ï¼ˆç»™è§¦æ‘¸ç”¨ï¼‰ ========== */
+/* ========== ¼ÇÂ¼ÁÁ¶ÈÌõ¾ØĞÎ£¨¸ø´¥ÃşÓÃ£© ========== */
 static u16 s_bar_x1, s_bar_y1, s_bar_x2, s_bar_y2;
 
+/* ========== UI »º´æ£¨¼õÉÙÖØ¸´È«Á¿»æÖÆÒÔÌáÉıÏìÓ¦£© ========== */
+static HGQ_UI_Data s_cache;
+static u8 s_cache_init = 0;
+static char s_cache_time_hm[8];
+static char s_cache_weekday[8];
+static int s_last_bri_draw = -1;
+static int s_last_bri_text = -1;
+static u8 s_last_bar_enabled = 0xFF;
+
 /* ===========================================================
-   GBK æç¤ºè¯ï¼ˆä¸å†™ä¸­æ–‡å¸¸é‡ï¼Œé˜² Keil/ARMCC ç¼–ç é—®é¢˜ï¼‰
+   GBK ÌáÊ¾´Ê£¨²»Ğ´ÖĞÎÄ³£Á¿£¬·À Keil/ARMCC ±àÂëÎÊÌâ£©
    =========================================================== */
-/* é¡¶éƒ¨ï¼šESP çŠ¶æ€ */
+/* ¶¥²¿£ºESP ×´Ì¬ */
 static const u8 STR_ESP01[]       = {'E','S','P','-','0','1',0};
-static const u8 STR_ESP_ONLINE[]  = {0xD4,0xDA,0xCF,0xDF,0x00};           /* åœ¨çº¿ */
-static const u8 STR_ESP_OFFLINE[] = {0xC0,0xEB,0xCF,0xDF,0x00};           /* ç¦»çº¿ */
-static const u8 STR_ESP_CONN[]    = {0xC1,0xAC,0xBD,0xD3,0xD6,0xD0,0x00}; /* è¿æ¥ä¸­ */
+static const u8 STR_ESP_ONLINE[]  = {0xD4,0xDA,0xCF,0xDF,0x00};           /* ÔÚÏß */
+static const u8 STR_ESP_OFFLINE[] = {0xC0,0xEB,0xCF,0xDF,0x00};           /* ÀëÏß */
+static const u8 STR_ESP_CONN[]    = {0xC1,0xAC,0xBD,0xD3,0xD6,0xD0,0x00}; /* Á¬½ÓÖĞ */
 
-/* ä¸‰å¡æ ‡é¢˜ */
-static const u8 STR_ENV[]   = {0xBB,0xB7,0xBE,0xB3,0x00};                 /* ç¯å¢ƒ */
-static const u8 STR_SEAT[]  = {0xD7,0xF9,0xCE,0xBB,0x00};                 /* åº§ä½ */
-static const u8 STR_LIGHT[] = {0xB5,0xC6,0xB9,0xE2,0x00};                 /* ç¯å…‰ */
+/* Èı¿¨±êÌâ */
+static const u8 STR_ENV[]   = {0xBB,0xB7,0xBE,0xB3,0x00};                 /* »·¾³ */
+static const u8 STR_SEAT[]  = {0xD7,0xF9,0xCE,0xBB,0x00};                 /* ×ùÎ» */
+static const u8 STR_LIGHT[] = {0xB5,0xC6,0xB9,0xE2,0x00};                 /* µÆ¹â */
 
-/* ç¯å¢ƒçŸ­æ ‡ç­¾ */
-static const u8 STR_T[] = {0xCE,0xC2,0xB6,0xC8,0x00};                     /* æ¸©åº¦ */
-static const u8 STR_H[] = {0xCA,0xAA,0xB6,0xC8,0x00};                     /* æ¹¿åº¦ */
-static const u8 STR_L[] = {0xB9,0xE2,0xD5,0xD5,0x00};                     /* å…‰ç…§ */
+/* »·¾³¶Ì±êÇ© */
+static const u8 STR_T[] = {0xCE,0xC2,0xB6,0xC8,0x00};                     /* ÎÂ¶È */
+static const u8 STR_H[] = {0xCA,0xAA,0xB6,0xC8,0x00};                     /* Êª¶È */
+static const u8 STR_L[] = {0xB9,0xE2,0xD5,0xD5,0x00};                     /* ¹âÕÕ */
 
-/* åº§ä½çŸ­æ ‡ç­¾ */
-static const u8 STR_USED[] = {0xCA,0xB9,0xD3,0xC3,0x00};                  /* ä½¿ç”¨ */
-static const u8 STR_STAT[] = {0xD7,0xB4,0xCC,0xAC,0x00};                  /* çŠ¶æ€ */
-static const u8 STR_NEXT[] = {0xCF,0xC2,0xB4,0xCE,0x00};                  /* ä¸‹æ¬¡ */
-static const u8 STR_HOUR[] = {0xD0,0xA1,0xCA,0xB1,0x00};                  /* å°æ—¶ */
+/* ×ùÎ»¶Ì±êÇ© */
+static const u8 STR_USED[] = {0xCA,0xB9,0xD3,0xC3,0x00};                  /* Ê¹ÓÃ */
+static const u8 STR_STAT[] = {0xD7,0xB4,0xCC,0xAC,0x00};                  /* ×´Ì¬ */
+static const u8 STR_NEXT[] = {0xCF,0xC2,0xB4,0xCE,0x00};                  /* ÏÂ´Î */
+static const u8 STR_HOUR[] = {0xD0,0xA1,0xCA,0xB1,0x00};                  /* Ğ¡Ê± */
 
-/* æ¨¡å¼/å¼€å…³ */
-static const u8 STR_AUTO[]   = {0xD7,0xD4,0xB6,0xAF,0x00};                /* è‡ªåŠ¨ */
-static const u8 STR_MANU[]   = {0xCA,0xD6,0xB6,0xAF,0x00};                /* æ‰‹åŠ¨ */
-static const u8 STR_ON[]     = {0xBF,0xAA,0xB5,0xC6,0x00};                /* å¼€ç¯ */
-static const u8 STR_OFF[]    = {0xB9,0xD8,0xB5,0xC6,0x00};                /* å…³ç¯ */
+/* Ä£Ê½/¿ª¹Ø */
+static const u8 STR_AUTO[]   = {0xD7,0xD4,0xB6,0xAF,0x00};                /* ×Ô¶¯ */
+static const u8 STR_MANU[]   = {0xCA,0xD6,0xB6,0xAF,0x00};                /* ÊÖ¶¯ */
+static const u8 STR_ON[]     = {0xBF,0xAA,0xB5,0xC6,0x00};                /* ¿ªµÆ */
+static const u8 STR_OFF[]    = {0xB9,0xD8,0xB5,0xC6,0x00};                /* ¹ØµÆ */
 
-/* ========== å†…éƒ¨ï¼šShow_Str åŒ…è£… + GBK æŒ‰å®½åº¦æˆªæ–­ ========== */
+/* ========== ÄÚ²¿£ºShow_Str °ü×° + GBK °´¿í¶È½Ø¶Ï ========== */
 static void HGQ_UI_ShowStr(u16 x,u16 y,u16 w,u16 h,const u8*str,u8 size,u8 mode)
 {
     Show_Str(x,y,w,h,(u8*)str,size,mode);
@@ -97,7 +106,7 @@ static void HGQ_UI_ShowStr_GBK_Limit(u16 x,u16 y,u16 w,u16 h,const u8*str,u8 siz
     Show_Str(x,y,w,h,buf,size,mode);
 }
 
-/* ========== å†…éƒ¨ï¼šç”»å¡ç‰‡ ========== */
+/* ========== ÄÚ²¿£º»­¿¨Æ¬ ========== */
 static void HGQ_UI_DrawCard(int x1,int y1,int x2,int y2)
 {
     LCD_Fill(x1,y1,x2,y2,HGQ_UI_C_CARD);
@@ -105,7 +114,13 @@ static void HGQ_UI_DrawCard(int x1,int y1,int x2,int y2)
     LCD_DrawRectangle(x1,y1,x2,y2);
 }
 
-/* ========== è‡ªåŠ¨äº®åº¦æ˜ å°„ï¼ˆæ ¹æ® lux -> 10~100ï¼‰ ========== */
+static void HGQ_UI_ClearLine(int x1, int y, int w, int h)
+{
+    if(w <= 0 || h <= 0) return;
+    LCD_Fill(x1, y, x1 + w - 1, y + h - 1, HGQ_UI_C_CARD);
+}
+
+/* ========== ×Ô¶¯ÁÁ¶ÈÓ³Éä£¨¸ù¾İ lux -> 10~100£© ========== */
 static int HGQ_UI_AutoBriFromLux(int lux)
 {
     int bri;
@@ -113,7 +128,7 @@ static int HGQ_UI_AutoBriFromLux(int lux)
     if(lux < 0) lux = 0;
     if(lux > 1000) lux = 1000;
 
-    /* 0lux->100%ï¼Œ1000lux->10% çº¿æ€§æ˜ å°„ */
+    /* 0lux->100%£¬1000lux->10% ÏßĞÔÓ³Éä */
     bri = 100 - (lux * 90) / 1000;
 
     if(bri < 10) bri = 10;
@@ -121,7 +136,7 @@ static int HGQ_UI_AutoBriFromLux(int lux)
     return bri;
 }
 
-/* ========== é¡¶éƒ¨æ ï¼šESP-01 çŠ¶æ€ ========== */
+/* ========== ¶¥²¿À¸£ºESP-01 ×´Ì¬ ========== */
 static void HGQ_UI_DrawTopBar(const HGQ_UI_Data *d, const char *time_hm, const char *weekday)
 {
     int w;
@@ -139,7 +154,7 @@ static void HGQ_UI_DrawTopBar(const HGQ_UI_Data *d, const char *time_hm, const c
     LCD_ShowString(6, 6, 60, 16, 16, (u8*)time_hm);
     Show_Str(70, 6, 50, 16, (u8*)weekday, 16, 0);
 
-    /* å³ä¾§çŠ¶æ€å— */
+    /* ÓÒ²à×´Ì¬¿é */
     block_w = 120;
     block_x = (w > block_w) ? (u16)(w - block_w) : 0;
 
@@ -150,10 +165,10 @@ static void HGQ_UI_DrawTopBar(const HGQ_UI_Data *d, const char *time_hm, const c
 
     /* ESP-01 */
     HGQ_UI_ShowStr(block_x + 2, 6, 56, 16, STR_ESP01, 16, 0);
-    /* çŠ¶æ€æ–‡å­— */
+    /* ×´Ì¬ÎÄ×Ö */
     HGQ_UI_ShowStr_GBK_Limit(block_x + 58, 6, (u16)(block_w - 58 - 12), 16, st_txt, 16, 0);
 
-    /* æŒ‡ç¤ºç‚¹ï¼šè¿æ¥ä¸­é—ªçƒï¼Œå…¶å®ƒå¸¸äº® */
+    /* Ö¸Ê¾µã£ºÁ¬½ÓÖĞÉÁË¸£¬ÆäËü³£ÁÁ */
     if(d->esp_state == 1)
     {
         s_blink ^= 1;
@@ -165,7 +180,7 @@ static void HGQ_UI_DrawTopBar(const HGQ_UI_Data *d, const char *time_hm, const c
         LCD_Fill(w-8, 9, w-4, 13, dot_color);
     }
 
-    /* ä¸­é—´åº§ä½å·ï¼šé™åˆ¶å®½åº¦åˆ°å³ä¾§å—ä¹‹å‰ */
+    /* ÖĞ¼ä×ùÎ»ºÅ£ºÏŞÖÆ¿í¶Èµ½ÓÒ²à¿éÖ®Ç° */
     seat_x = 130;
     seat_w = (block_x > seat_x + 6) ? (u16)(block_x - seat_x - 6) : 0;
     if(seat_w > 20)
@@ -176,7 +191,7 @@ static void HGQ_UI_DrawTopBar(const HGQ_UI_Data *d, const char *time_hm, const c
     }
 }
 
-/* ========== äº®åº¦æ¡ï¼ˆå‚ç›´ï¼‰ ========== */
+/* ========== ÁÁ¶ÈÌõ£¨´¹Ö±£© ========== */
 static void HGQ_UI_DrawBrightnessBar(int x1,int y1,int x2,int y2,int percent, u8 enabled)
 {
     int h, fill_h;
@@ -184,7 +199,7 @@ static void HGQ_UI_DrawBrightnessBar(int x1,int y1,int x2,int y2,int percent, u8
     if(percent < 0) percent = 0;
     if(percent > 100) percent = 100;
 
-    /* èƒŒæ™¯ */
+    /* ±³¾° */
     LCD_Fill(x1,y1,x2,y2,HGQ_UI_C_CARD);
     POINT_COLOR = HGQ_UI_C_LINE;
     LCD_DrawRectangle(x1,y1,x2,y2);
@@ -194,15 +209,15 @@ static void HGQ_UI_DrawBrightnessBar(int x1,int y1,int x2,int y2,int percent, u8
 
     fill_h = (h * percent) / 100;
 
-    /* æœªå¡«å…… */
+    /* Î´Ìî³ä */
     LCD_Fill(x1+1, y1+1, x2-1, y2-1-fill_h, WHITE);
 
-    /* å¡«å……ï¼šå¯æ‹–åŠ¨æ—¶ç”¨å¼ºè°ƒè‰²ï¼›ä¸å¯æ‹–åŠ¨/å…³ç¯æ—¶ç”¨ç°ä¸€äº›ï¼ˆç”¨è¾¹æ¡†è‰²ä»£æ›¿ï¼‰ */
+    /* Ìî³ä£º¿ÉÍÏ¶¯Ê±ÓÃÇ¿µ÷É«£»²»¿ÉÍÏ¶¯/¹ØµÆÊ±ÓÃ»ÒÒ»Ğ©£¨ÓÃ±ß¿òÉ«´úÌæ£© */
     if(enabled) LCD_Fill(x1+1, y2-fill_h, x2-1, y2-1, HGQ_UI_C_ACCENT);
     else        LCD_Fill(x1+1, y2-fill_h, x2-1, y2-1, HGQ_UI_C_LINE);
 }
 
-/* ========== åº•éƒ¨æŒ‰é’®ï¼ˆ4ä¸ªï¼šæ‰‹åŠ¨/è‡ªåŠ¨/å¼€ç¯/å…³ç¯ï¼‰ ========== */
+/* ========== µ×²¿°´Å¥£¨4¸ö£ºÊÖ¶¯/×Ô¶¯/¿ªµÆ/¹ØµÆ£© ========== */
 static void HGQ_UI_DrawBottomButtons(int selected_manual, int selected_auto, int light_on)
 {
     int w, h;
@@ -257,7 +272,7 @@ static void HGQ_UI_DrawBottomButtons(int selected_manual, int selected_auto, int
     }
 }
 
-/* ========== å¯¹å¤–ï¼šè§¦æ‘¸åˆ¤å®šï¼ˆæŒ‰é’®çŸ©å½¢ä¸ç»˜åˆ¶ä¸€è‡´ï¼‰ ========== */
+/* ========== ¶ÔÍâ£º´¥ÃşÅĞ¶¨£¨°´Å¥¾ØĞÎÓë»æÖÆÒ»ÖÂ£© ========== */
 static void HGQ_UI_GetBtnRect(u8 idx, u16 *x1, u16 *y1, u16 *x2, u16 *y2)
 {
     u16 w, h;
@@ -312,7 +327,7 @@ u8 HGQ_UI_TouchBtn_Off(u16 x, u16 y)
     return HGQ_UI_InRect(x,y,x1,y1,x2,y2);
 }
 
-/* è§¦æ‘¸äº®åº¦æ¡ï¼šå‘½ä¸­è¿”å›äº®åº¦ç™¾åˆ†æ¯” */
+/* ´¥ÃşÁÁ¶ÈÌõ£ºÃüÖĞ·µ»ØÁÁ¶È°Ù·Ö±È */
 u8 HGQ_UI_TouchLightBar(u16 x, u16 y, u8 *out_percent)
 {
     int percent;
@@ -324,7 +339,7 @@ u8 HGQ_UI_TouchLightBar(u16 x, u16 y, u8 *out_percent)
     bar_h = (int)(s_bar_y2 - s_bar_y1);
     if(bar_h <= 2) { *out_percent = 0; return 1; }
 
-    /* é¡¶éƒ¨=100ï¼Œåº•éƒ¨=0ï¼ˆä»ä¸‹å¾€ä¸Šï¼‰ */
+    /* ¶¥²¿=100£¬µ×²¿=0£¨´ÓÏÂÍùÉÏ£© */
     percent = (int)(s_bar_y2 - y) * 100 / bar_h;
     if(percent < 0) percent = 0;
     if(percent > 100) percent = 100;
@@ -333,7 +348,7 @@ u8 HGQ_UI_TouchLightBar(u16 x, u16 y, u8 *out_percent)
     return 1;
 }
 
-/* ========== å¯¹å¤– API ========== */
+/* ========== ¶ÔÍâ API ========== */
 void HGQ_UI_Init(void)
 {
     s_bri_now = 0;
@@ -346,7 +361,7 @@ int HGQ_UI_GetBrightnessNow(void)
     return s_bri_now;
 }
 
-/* ç”»é™æ€æ¡†æ¶ï¼ˆæ¨ªå±ä¸‰å¡éç­‰åˆ†ï¼‰ */
+/* »­¾²Ì¬¿ò¼Ü£¨ºáÆÁÈı¿¨·ÇµÈ·Ö£© */
 void HGQ_UI_DrawFramework(void)
 {
     int w, h;
@@ -386,7 +401,7 @@ void HGQ_UI_DrawFramework(void)
     HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)(y_top+HGQ_UI_PAD),(u16)((x6-x5+1)-2*HGQ_UI_PAD),16,STR_LIGHT,16,0);
 }
 
-/* åŠ¨æ€åˆ·æ–° + è‡ªåŠ¨äº®åº¦é€»è¾‘ */
+/* ¶¯Ì¬Ë¢ĞÂ + ×Ô¶¯ÁÁ¶ÈÂß¼­ */
 void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_hm, const char *weekday)
 {
     int w, h;
@@ -394,8 +409,13 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_hm, const char *weekday)
     int env_w, seat_w;
     int x1,x2,x3,x4,x5,x6, light_w;
     int y0, y1, y2l;
+    int line_w_env, line_w_seat, line_w_light;
 
     u8 bar_enabled;
+    u8 top_dirty = 0;
+    u8 env_dirty = 0;
+    u8 seat_dirty = 0;
+    u8 light_dirty = 0;
 
     w = lcddev.width;
     h = lcddev.height;
@@ -415,70 +435,129 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_hm, const char *weekday)
     x5 = x4 + HGQ_UI_GAP + 1;
     x6 = w - HGQ_UI_GAP - 1;
     light_w = (x6 - x5 + 1);
+    line_w_env = env_w - 2 * HGQ_UI_PAD;
+    line_w_seat = seat_w - 2 * HGQ_UI_PAD;
+    line_w_light = light_w - 2 * HGQ_UI_PAD;
 
-    /* é¡¶éƒ¨æ  */
-    HGQ_UI_DrawTopBar(d, time_hm, weekday);
+    if(time_hm == NULL) time_hm = "";
+    if(weekday == NULL) weekday = "";
 
-    /* è‡ªåŠ¨æ¨¡å¼ï¼šæ ¹æ®å…‰ç…§æ›´æ–°ç›®æ ‡äº®åº¦ï¼ˆä»…åœ¨å¼€ç¯æ—¶ç”Ÿæ•ˆï¼‰ */
+    if(!s_cache_init)
+    {
+        memset(&s_cache, 0, sizeof(s_cache));
+        s_cache.temp_x10 = -100000;
+        s_cache.humi = -1;
+        s_cache.lux = -1;
+        s_cache.use_min = -1;
+        s_cache.auto_mode = 2;
+        s_cache.light_on = 2;
+        s_cache.bri_target = -1;
+        s_cache.esp_state = 0xFF;
+        s_cache.area_seat[0] = '\0';
+        s_cache.status[0] = '\0';
+        s_cache.next_time[0] = '\0';
+        s_cache_time_hm[0] = '\0';
+        s_cache_weekday[0] = '\0';
+        s_cache_init = 1;
+        top_dirty = env_dirty = seat_dirty = light_dirty = 1;
+    }
+
+    /* ¶¥²¿À¸ */
+    if(d->esp_state != s_cache.esp_state ||
+       strcmp(d->area_seat, s_cache.area_seat) != 0 ||
+       strcmp(time_hm, s_cache_time_hm) != 0 ||
+       strcmp(weekday, s_cache_weekday) != 0)
+    {
+        top_dirty = 1;
+    }
+    if(top_dirty) HGQ_UI_DrawTopBar(d, time_hm, weekday);
+
+    /* ×Ô¶¯Ä£Ê½£º¸ù¾İ¹âÕÕ¸üĞÂÄ¿±êÁÁ¶È£¨½öÔÚ¿ªµÆÊ±ÉúĞ§£© */
     if(d->auto_mode && d->light_on)
     {
         d->bri_target = HGQ_UI_AutoBriFromLux(d->lux);
     }
 
-    /* è‹¥å…³ç¯ï¼šç›®æ ‡äº®åº¦è§†ä¸º0 */
+    /* Èô¹ØµÆ£ºÄ¿±êÁÁ¶ÈÊÓÎª0 */
     if(!d->light_on) d->bri_target = 0;
 
-    /* äº®åº¦ç¼“åŠ¨åŠ¨ç”»ï¼ˆè®©æ¡å˜åŒ–æ›´é¡ºæ»‘ï¼‰ */
+    /* ÁÁ¶È»º¶¯¶¯»­£¨ÈÃÌõ±ä»¯¸üË³»¬£© */
     if(s_bri_now < d->bri_target) s_bri_now++;
     else if(s_bri_now > d->bri_target) s_bri_now--;
 
-    /* å†…å®¹è¡Œ */
+    /* ÄÚÈİĞĞ */
     y0  = y_top + HGQ_UI_PAD + 18;
     y1  = y0 + HGQ_UI_LINE_H;
     y2l = y1 + HGQ_UI_LINE_H;
 
-    /* ========== å·¦å¡ï¼šç¯å¢ƒ ========== */
-    POINT_COLOR = HGQ_UI_C_TEXT;
-    BACK_COLOR  = HGQ_UI_C_CARD;
-
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y0,48,16,STR_T,16,0);
-    LCD_ShowNum((u16)(x1+52),(u16)y0,(u32)(d->temp_x10/10),2,16);
-    LCD_ShowString((u16)(x1+68),(u16)y0,8,16,16,(u8*)".");
-    LCD_ShowNum((u16)(x1+76),(u16)y0,(u32)(d->temp_x10%10),1,16);
-    LCD_ShowString((u16)(x1+84),(u16)y0,16,16,16,(u8*)"C");
-
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y1,48,16,STR_H,16,0);
-    LCD_ShowNum((u16)(x1+52),(u16)y1,(u32)d->humi,3,16);
-    LCD_ShowString((u16)(x1+80),(u16)y1,16,16,16,(u8*)"%");
-
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y2l,48,16,STR_L,16,0);
-    LCD_ShowNum((u16)(x1+52),(u16)y2l,(u32)d->lux,4,16);
-    LCD_ShowString((u16)(x1+92),(u16)y2l,24,16,16,(u8*)"lx");
-
-    /* ========== ä¸­å¡ï¼šåº§ä½ ========== */
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y0,48,16,STR_USED,16,0);
-    LCD_ShowNum((u16)(x3+52),(u16)y0,(u32)(d->use_min/60),2,16);
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+72),(u16)y0,40,16,STR_HOUR,16,0);
-
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y1,48,16,STR_STAT,16,0);
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+52),(u16)y1,(u16)(seat_w-52-HGQ_UI_PAD),16,(u8*)d->status,16,0);
-
-    HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y2l,48,16,STR_NEXT,16,0);
-    LCD_ShowString((u16)(x3+52),(u16)y2l,(u16)(seat_w-52-HGQ_UI_PAD),16,16,(u8*)d->next_time);
-
-    /* ========== å³å¡ï¼šç¯å…‰ï¼ˆæ¨¡å¼ + æ¡ + %ï¼‰ ========== */
-    if(d->auto_mode)
+    /* ========== ×ó¿¨£º»·¾³ ========== */
+    if(d->temp_x10 != s_cache.temp_x10 || d->humi != s_cache.humi || d->lux != s_cache.lux) env_dirty = 1;
+    if(env_dirty)
     {
-        POINT_COLOR = HGQ_UI_C_OK;  BACK_COLOR = HGQ_UI_C_CARD;
-        HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)y0,(u16)(light_w-2*HGQ_UI_PAD),16,STR_AUTO,16,0);
-    }
-    else
-    {
-        POINT_COLOR = HGQ_UI_C_WARN; BACK_COLOR = HGQ_UI_C_CARD;
-        HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)y0,(u16)(light_w-2*HGQ_UI_PAD),16,STR_MANU,16,0);
+        HGQ_UI_ClearLine(x1 + HGQ_UI_PAD, y0, line_w_env, 16);
+        HGQ_UI_ClearLine(x1 + HGQ_UI_PAD, y1, line_w_env, 16);
+        HGQ_UI_ClearLine(x1 + HGQ_UI_PAD, y2l, line_w_env, 16);
+
+        POINT_COLOR = HGQ_UI_C_TEXT;
+        BACK_COLOR  = HGQ_UI_C_CARD;
+
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y0,48,16,STR_T,16,0);
+        LCD_ShowNum((u16)(x1+52),(u16)y0,(u32)(d->temp_x10/10),2,16);
+        LCD_ShowString((u16)(x1+68),(u16)y0,8,16,16,(u8*)".");
+        LCD_ShowNum((u16)(x1+76),(u16)y0,(u32)(d->temp_x10%10),1,16);
+        LCD_ShowString((u16)(x1+84),(u16)y0,16,16,16,(u8*)"C");
+
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y1,48,16,STR_H,16,0);
+        LCD_ShowNum((u16)(x1+52),(u16)y1,(u32)d->humi,3,16);
+        LCD_ShowString((u16)(x1+80),(u16)y1,16,16,16,(u8*)"%");
+
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x1+HGQ_UI_PAD),(u16)y2l,48,16,STR_L,16,0);
+        LCD_ShowNum((u16)(x1+52),(u16)y2l,(u32)d->lux,4,16);
+        LCD_ShowString((u16)(x1+92),(u16)y2l,24,16,16,(u8*)"lx");
     }
 
-    /* äº®åº¦æ¡åŒºåŸŸï¼ˆè®°å½•çŸ©å½¢ä¾›è§¦æ‘¸ç”¨ï¼‰ */
+    /* ========== ÖĞ¿¨£º×ùÎ» ========== */
+    if(d->use_min != s_cache.use_min ||
+       strcmp(d->status, s_cache.status) != 0 ||
+       strcmp(d->next_time, s_cache.next_time) != 0)
+    {
+        seat_dirty = 1;
+    }
+    if(seat_dirty)
+    {
+        HGQ_UI_ClearLine(x3 + HGQ_UI_PAD, y0, line_w_seat, 16);
+        HGQ_UI_ClearLine(x3 + HGQ_UI_PAD, y1, line_w_seat, 16);
+        HGQ_UI_ClearLine(x3 + HGQ_UI_PAD, y2l, line_w_seat, 16);
+
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y0,48,16,STR_USED,16,0);
+        LCD_ShowNum((u16)(x3+52),(u16)y0,(u32)(d->use_min/60),2,16);
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+72),(u16)y0,40,16,STR_HOUR,16,0);
+
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y1,48,16,STR_STAT,16,0);
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+52),(u16)y1,(u16)(seat_w-52-HGQ_UI_PAD),16,(u8*)d->status,16,0);
+
+        HGQ_UI_ShowStr_GBK_Limit((u16)(x3+HGQ_UI_PAD),(u16)y2l,48,16,STR_NEXT,16,0);
+        LCD_ShowString((u16)(x3+52),(u16)y2l,(u16)(seat_w-52-HGQ_UI_PAD),16,16,(u8*)d->next_time);
+    }
+
+    /* ========== ÓÒ¿¨£ºµÆ¹â£¨Ä£Ê½ + Ìõ + %£© ========== */
+    if(d->auto_mode != s_cache.auto_mode || d->light_on != s_cache.light_on) light_dirty = 1;
+    if(light_dirty)
+    {
+        HGQ_UI_ClearLine(x5 + HGQ_UI_PAD, y0, line_w_light, 16);
+        if(d->auto_mode)
+        {
+            POINT_COLOR = HGQ_UI_C_OK;  BACK_COLOR = HGQ_UI_C_CARD;
+            HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)y0,(u16)(light_w-2*HGQ_UI_PAD),16,STR_AUTO,16,0);
+        }
+        else
+        {
+            POINT_COLOR = HGQ_UI_C_WARN; BACK_COLOR = HGQ_UI_C_CARD;
+            HGQ_UI_ShowStr_GBK_Limit((u16)(x5+HGQ_UI_PAD),(u16)y0,(u16)(light_w-2*HGQ_UI_PAD),16,STR_MANU,16,0);
+        }
+    }
+
+    /* ÁÁ¶ÈÌõÇøÓò£¨¼ÇÂ¼¾ØĞÎ¹©´¥ÃşÓÃ£© */
     {
         int bar_w;
         int bx1,bx2,by1,by2;
@@ -497,19 +576,34 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_hm, const char *weekday)
         s_bar_y1 = (u16)by1;
         s_bar_y2 = (u16)by2;
 
-        /* æ¡æ˜¯å¦å…è®¸æ‰‹åŠ¨ï¼šæ‰‹åŠ¨æ¨¡å¼ + å¼€ç¯ */
+        /* ÌõÊÇ·ñÔÊĞíÊÖ¶¯£ºÊÖ¶¯Ä£Ê½ + ¿ªµÆ */
         bar_enabled = (u8)((d->auto_mode==0) && (d->light_on==1));
 
-        /* å…³ç¯æ—¶ç¦ç”¨æ˜¾ç¤º */
-        HGQ_UI_DrawBrightnessBar(bx1,by1,bx2,by2,s_bri_now,bar_enabled);
+        /* ¹ØµÆÊ±½ûÓÃÏÔÊ¾ */
+        if(light_dirty || s_bri_now != s_last_bri_draw || bar_enabled != s_last_bar_enabled)
+        {
+            HGQ_UI_DrawBrightnessBar(bx1,by1,bx2,by2,s_bri_now,bar_enabled);
+            s_last_bri_draw = s_bri_now;
+            s_last_bar_enabled = bar_enabled;
+        }
     }
 
-    POINT_COLOR = HGQ_UI_C_TEXT;
-    BACK_COLOR  = HGQ_UI_C_CARD;
-    LCD_ShowNum((u16)(x5 + (light_w-30)/2),(u16)(y_bottom-26),(u32)s_bri_now,3,16);
-    LCD_ShowString((u16)(x5 + (light_w-30)/2 + 26),(u16)(y_bottom-26),12,16,16,(u8*)"%");
+    if(light_dirty || s_bri_now != s_last_bri_text)
+    {
+        HGQ_UI_ClearLine(x5 + (light_w-30)/2, y_bottom - 26, 40, 16);
+        POINT_COLOR = HGQ_UI_C_TEXT;
+        BACK_COLOR  = HGQ_UI_C_CARD;
+        LCD_ShowNum((u16)(x5 + (light_w-30)/2),(u16)(y_bottom-26),(u32)s_bri_now,3,16);
+        LCD_ShowString((u16)(x5 + (light_w-30)/2 + 26),(u16)(y_bottom-26),12,16,16,(u8*)"%");
+        s_last_bri_text = s_bri_now;
+    }
 
-    /* åº•éƒ¨æŒ‰é’®ï¼šé«˜äº®å½“å‰æ¨¡å¼/å¼€å…³ */
-    HGQ_UI_DrawBottomButtons(d->auto_mode==0, d->auto_mode==1, d->light_on);
+    /* µ×²¿°´Å¥£º¸ßÁÁµ±Ç°Ä£Ê½/¿ª¹Ø */
+    if(light_dirty) HGQ_UI_DrawBottomButtons(d->auto_mode==0, d->auto_mode==1, d->light_on);
+
+    s_cache = *d;
+    strncpy(s_cache_time_hm, time_hm, sizeof(s_cache_time_hm) - 1);
+    s_cache_time_hm[sizeof(s_cache_time_hm) - 1] = '\0';
+    strncpy(s_cache_weekday, weekday, sizeof(s_cache_weekday) - 1);
+    s_cache_weekday[sizeof(s_cache_weekday) - 1] = '\0';
 }
-

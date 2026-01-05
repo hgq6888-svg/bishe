@@ -302,9 +302,9 @@ ESP8266_Status HGQ_ESP8266_SendCmd(char *cmd, char *reply, uint32_t timeout)
     memset(esp_res_buf, 0, sizeof(esp_res_buf));
     
     /* 调试输出：显示发送的命令 */
-//    HGQ_USART1_SendString("-> 发送AT命令: ");
-//    HGQ_USART1_SendString(cmd);
-//    HGQ_USART1_SendString("\r\n");
+    HGQ_USART1_SendString("-> 发送AT命令: ");
+    HGQ_USART1_SendString(cmd);
+    HGQ_USART1_SendString("\r\n");
     
     /* 通过USART2发送命令到ESP8266 */
     HGQ_USART2_SendString(cmd);
@@ -316,9 +316,9 @@ ESP8266_Status HGQ_ESP8266_SendCmd(char *cmd, char *reply, uint32_t timeout)
 			HGQ_USART2_ReceiveString(esp_res_buf, sizeof(esp_res_buf), timeout);
     
     /* 调试输出：显示接收到的响应 */
-//    HGQ_USART1_SendString("<- 接收到的响应: \n {");
+    HGQ_USART1_SendString("<- 接收到的响应: \n {");
     HGQ_USART1_SendString(esp_res_buf);
-//    HGQ_USART1_SendString("}\r\n");
+    HGQ_USART1_SendString("}\r\n");
     
     /* 检查响应中是否包含期待的关键字 */
     if (strstr(esp_res_buf, reply) != NULL)

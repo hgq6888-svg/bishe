@@ -51,7 +51,7 @@
 #define PERIOD_TOF_MS    200                    // TOF传感器周期
 #define PERIOD_AHT_MS    500                    // 温湿度传感器周期
 #define PERIOD_LUX_MS    500                    // 光照传感器周期
-#define PERIOD_TOUCH_MS  10                     // 触摸检测周期
+// #define PERIOD_TOUCH_MS  10                  // 【优化】移除触摸周期限制，全速运行
 #define UI_REFRESH_MS    50                     // UI刷新周期
 
 /* ================== MQTT Topic 组装 ================== */
@@ -60,7 +60,7 @@ static void Topic_Make(char *out, u16 out_sz, const char *suffix)
     /* out = "studyroom/<DEV_ID>/<suffix>" */
     if(!out || out_sz == 0) return;             // 参数检查
     snprintf(out, out_sz, "server/cmd"); 
-		//snprintf(out, out_sz, "server/%s/%s", suffix, DEV_ID);
+    //snprintf(out, out_sz, "server/%s/%s", suffix, DEV_ID);
 }
 
 /* ================== key=value&... 取值 ================== */
@@ -134,10 +134,7 @@ static void UID_ToHexNoSpace(const uint8_t *uid, uint8_t uid_len, char *out, uin
     out[pos] = '\0';                            // 添加字符串结束符
 }
 
-/* ================== MQTT 发布：telemetry物理状态 ==================
-   server.py 订阅：studyroom/<dev_id>/telemetry
-   这里发 key=value&...（server.py 需要支持 kv 解析）
-*/
+/* ================== MQTT 发布：telemetry物理状态 ================== */
 static void MQTT_PubTelemetry(void)
 {
     char topic[64];                             // 主题缓冲区
@@ -153,9 +150,7 @@ static void MQTT_PubTelemetry(void)
     HGQ_ESP8266_MQTTPUB(topic, msg, 0);         // 发布消息
 }
 
-/* ================== MQTT 发布：heartbeat 心跳==================
-   server.py 订阅：studyroom/<dev_id>/heartbeat
-*/
+/* ================== MQTT 发布：heartbeat 心跳================== */
 static void MQTT_PubHeartbeat(void)
 {
     char topic[64];                             // 主题缓冲区
@@ -163,10 +158,7 @@ static void MQTT_PubHeartbeat(void)
     HGQ_ESP8266_MQTTPUB(topic, "ping=1", 0);    // 发布心跳消息
 }
 
-/* ================== MQTT 发布：state ==================
-   server.py 用这个同步设备状态
-   seat/state/uid/power/light/light_mode
-*/
+/* ================== MQTT 发布：state ================== */
 static void MQTT_PubState(void)
 {
     char topic[64];                             // 主题缓冲区
@@ -174,7 +166,6 @@ static void MQTT_PubState(void)
 
     Topic_Make(topic, sizeof(topic), "state");  // 构建主题
 
-    // 原代码被注释掉，改为新格式：
      snprintf(msg, sizeof(msg),
               "type=telemetry&seat=%s&state=%s&uid=%s&power=%d&light=%d&light_mode=%s",
               SEAT_NAME,
@@ -184,22 +175,10 @@ static void MQTT_PubState(void)
               (ui.light_on ? 1 : 0),
               (ui.auto_mode ? "AUTO" : "MANUAL"));
 
-//    // 新格式：包含type、src、seat_id和传感器数据
-//    snprintf(msg, sizeof(msg),
-//            "type=telemetry&src=stm32&seat_id=A15&temp=%0.1f&humi=%f&lux=%d&tof_mm=320&object=1",
-//            g_temp_c,           // 温度（浮点数）
-//            g_humi_rh,          // 湿度（浮点数，但用%d格式）
-//            g_lux);             // 光照强度
-
     HGQ_ESP8266_MQTTPUB(topic, msg, 0);         // 发布消息
 }
 
-/* ================== MQTT 发布：event ==================
-   server.py 会记录 events，并在某些事件触发预约状态改变
-   - checkin:  type=checkin&uid=<card>
-   - checkout: type=checkout&uid=<card>&reason=card
-   - tof:      type=tof&tof_mm=320&object=1
-*/
+/* ================== MQTT 发布：event ================== */
 static void MQTT_PubEvent(const char *msg_kv)
 {
     char topic[64];                             // 主题缓冲区
@@ -207,18 +186,13 @@ static void MQTT_PubEvent(const char *msg_kv)
     HGQ_ESP8266_MQTTPUB(topic, (char*)msg_kv, 0); // 发布事件消息
 }
 
-/* ================== 服务器 cmd 处理（订阅 studyroom/<dev_id>/cmd） ==================
-   server.py 当前会下发（原版是 JSON），这里要求 server.py 改成 kv：
-   - reserve: type=reserve&uid=XXXX&seat=...&hold_min=15&duration_min=120&rid=1
-   - release: type=release&reason=...
-   - light:   type=light&mode=AUTO/MANUAL&on=1/0
-*/
+/* ================== 服务器 cmd 处理 ================== */
 static void CMD_HandleKV(const char *kv)
 {
     char typ[20];                               // 命令类型缓冲区
     char uid[24];                               // UID缓冲区
-    char mode[12];                              // 模式缓冲区
-    char on[8];                                 // 开关状态缓冲区
+    // char mode[12];                              // 模式缓冲区
+    // char on[8];                                 // 开关状态缓冲区
 
     if(!KV_Get(kv, "type", typ, sizeof(typ)))   // 提取type字段
         return;                                 // 失败则返回
@@ -249,30 +223,9 @@ static void CMD_HandleKV(const char *kv)
        // MQTT_PubState();                        // 上报状态
         return;
     }
-
-    /* 灯控制 */
-//    if(strcmp(typ, "light") == 0)               // 灯光控制命令
-//    {
-//        if(KV_Get(kv, "mode", mode, sizeof(mode))) // 提取模式
-//        {
-//            if(strcmp(mode, "AUTO") == 0) ui.auto_mode = 1;     // 自动模式
-//            else if(strcmp(mode, "MANUAL") == 0) ui.auto_mode = 0; // 手动模式
-//        }
-
-//        if(KV_Get(kv, "on", on, sizeof(on)))    // 提取开关状态
-//            ui.light_on = (atoi(on) != 0) ? 1 : 0; // 转换为整型并设置
-
-//        /* 上报状态给服务器 */
-//        MQTT_PubState();                        // 上报状态
-//        return;
-//    }
-
-    /* login_resp 等其它：暂不处理 */
 }
 
-/* ================== ESP UART2 接收解析 +MQTTSUBRECV ==================
-   +MQTTSUBRECV:0,"studyroom/A15/cmd","type=reserve&..."
-*/
+/* ================== ESP UART2 接收解析 +MQTTSUBRECV ================== */
 static void ESP_UART2_PollCmd(void)
 {
     static char line[256];                      // 接收缓冲区
@@ -280,9 +233,8 @@ static void ESP_UART2_PollCmd(void)
 
     while(HGQ_USART2_Available())               // 检查串口是否有数据
     {
-        //char ch = (char)HGQ_USART2_ReceiveChar(); // 读取一个字符
-				uint8_t  ch ;
-				HGQ_USART2_IT_GetChar(&ch);
+        uint8_t  ch ;
+        HGQ_USART2_IT_GetChar(&ch);
 
         if(idx < sizeof(line)-1)                // 检查缓冲区是否未满
             line[idx++] = ch;                   // 存储字符并递增索引
@@ -315,6 +267,7 @@ static void APP_TouchProcess(void)
 {
     static u8 last_down = 0;                    // 上次触摸状态（0未按下，1按下）
 
+    // 【优化】TP_Scan 内部如果没按下会直接返回，非常快，不会阻塞
     if(tp_dev.scan(0))                          // 扫描触摸屏
     {
         u16 x = tp_dev.x[0];                    // 触摸点X坐标
@@ -352,8 +305,7 @@ static void APP_TouchProcess(void)
 static void esp_rx_cb(uint8_t ch)
 {
     // 注意：这里在中断里执行，别写延时、别写LCD刷新、别发MQTT这种耗时操作
-    // 建议只做：标志位、简单缓存、计数
-		 ESP_UART2_PollCmd();
+     ESP_UART2_PollCmd();
 }
 
 
@@ -362,12 +314,12 @@ static void System_Init(void)
 {
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); // 设置中断优先级分组
 
-    delay_init(168);                            // 延时初始化（系统时钟168MHz）
-    uart_init(115200);                          // 串口1初始化（用于PC调试）
-    HGQ_USART2_Init(115200);                    // 串口2初始化（用于ESP8266）
-		HGQ_USART2_SetRxCallback(esp_rx_cb);
-		HGQ_USART2_EnableRxIRQ(ENABLE);   // 开启 USART2 的 RXNE 中断接收（ESP8266 常用）
-	
+    delay_init(168);                            // 延时初始化
+    uart_init(115200);                          // 串口1初始化
+    HGQ_USART2_Init(115200);                    // 串口2初始化
+//    HGQ_USART2_SetRxCallback(esp_rx_cb);
+//    HGQ_USART2_EnableRxIRQ(ENABLE);   
+    
     LED_Init();                                 // LED初始化
 
     LCD_Init();                                 // LCD初始化
@@ -478,11 +430,7 @@ static void Task_TOF(void)
         g_tof_mm = mm;                          // 存储距离值
 }
 
-/* ================== 任务：刷卡（完全匹配 server.py 流程）==================
-   - RESERVED：刷卡 -> event(checkin) + 进入 IN_USE
-   - IN_USE  ：刷卡 -> event(checkout) + 进入 FREE
-   - FREE    ：刷卡 -> 只记录事件（可选）
-*/
+/* ================== 任务：刷卡 ================== */
 static void Task_RC522(void)
 {
     uint8_t uid_len = 0;                        // UID长度
@@ -588,21 +536,23 @@ int main(void)
     uint32_t tick_ms = 0;                       // 系统时间戳（毫秒）
     // 各个任务的上次执行时间
     uint32_t last_rfid_ms = 0, last_tof_ms = 0, last_aht_ms = 0, last_lux_ms = 0;
-    uint32_t last_touch_ms = 0, last_ui_ms = 0;
+    // uint32_t last_touch_ms = 0; // 【优化】移除触摸计时
+    uint32_t last_ui_ms = 0;
 
     // 各个发布任务的上次执行时间
     uint32_t last_pub_tele = 0;
-    uint32_t last_pub_state = 0;
-    uint32_t last_pub_heart = 0;
-    uint32_t last_pub_tofevt = 0;
+    // uint32_t last_pub_state = 0;
+    // uint32_t last_pub_heart = 0;
+    // uint32_t last_pub_tofevt = 0;
 
     while(1)                                    // 主循环
     {
-        delay_ms(10);                           // 延时10ms
-        tick_ms += 10;                          // 更新时间戳
+        /* 【优化关键点1】大幅减小延时，提高轮询频率 */
+        delay_ms(1);                            // 延时1ms (原10ms)
+        tick_ms += 1;                           // 更新时间戳
 
-        /* 解析服务器 cmd */
-       // ESP_UART2_PollCmd();                    // 处理ESP8266接收的数据
+        /* 【优化关键点2】每次循环都检测触摸（全速运行） */
+        APP_TouchProcess();                     
 
         /* 传感器 */
         if(tick_ms - last_rfid_ms >= PERIOD_RFID_MS) { last_rfid_ms = tick_ms; Task_RC522(); } // RFID任务
@@ -610,16 +560,14 @@ int main(void)
         if(tick_ms - last_aht_ms  >= PERIOD_AHT_MS)  { last_aht_ms  = tick_ms; Task_AHT20(); } // 温湿度任务
         if(tick_ms - last_lux_ms  >= PERIOD_LUX_MS)  { last_lux_ms  = tick_ms; Task_BH1750(); } // 光照任务
 
-        /* 触摸 */
-        if(tick_ms - last_touch_ms >= PERIOD_TOUCH_MS) { last_touch_ms = tick_ms; APP_TouchProcess(); } // 触摸任务
-
         /* UI */
         if(tick_ms - last_ui_ms >= UI_REFRESH_MS) // UI刷新任务
         {
             last_ui_ms = tick_ms;               // 更新UI刷新时间
 
             ui.use_min = 120;                   // 设置使用时间（分钟）
-            HGQ_UI_Update(&ui, "", "");         // 更新UI显示
+            /* 现在的Update函数只更新变化的数值，不再重画所有文字，非常快 */
+            HGQ_UI_Update(&ui, "", "");         
 
             /* PWM 输出 */
             {
@@ -637,26 +585,5 @@ int main(void)
             last_pub_tele = tick_ms;            // 更新遥测发布时间
             MQTT_PubTelemetry();                // 发布遥测数据
         }
-
-        /* state */
-//        if(tick_ms - last_pub_state >= PUB_STATE_MS) // 状态发布任务
-//        {
-//            last_pub_state = tick_ms;           // 更新状态发布时间
-//            MQTT_PubState();                    // 发布状态
-//        }
-
-        /* heartbeat */
-//        if(tick_ms - last_pub_heart >= PUB_HEART_MS) // 心跳发布任务
-//        {
-//            last_pub_heart = tick_ms;           // 更新心跳发布时间
-//            MQTT_PubHeartbeat();                // 发布心跳
-//        }
-
-        /* tof 占位事件 */
-//        if(tick_ms - last_pub_tofevt >= PUB_TOF_EVT_MS) // TOF事件发布任务
-//        {
-//            last_pub_tofevt = tick_ms;          // 更新TOF事件发布时间
-//            Task_TOF_Event();                   // 执行TOF事件检测和发布
-//        }
     }
 }
