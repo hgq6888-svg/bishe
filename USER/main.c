@@ -40,7 +40,7 @@
 #define PERIOD_NET_CHK   10000 
 #define PERIOD_TIME_SYNC 60000 
 
-#define TASK_QUEUE_SIZE  10
+#define TASK_QUEUE_SIZE  20
 #define TASK_CMD_LEN     256
 
 /* 操作模式定义 */
