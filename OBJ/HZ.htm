@@ -3,7 +3,7 @@
 <title>Static Call Graph - [..\OBJ\HZ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image ..\OBJ\HZ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Tue Jan 06 21:51:13 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Tue Jan 06 23:19:23 2026
 <BR><P>
 <H3>Maximum Stack Usage =       1632 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -309,13 +309,13 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_exit
 </UL>
 
-<P><STRONG><a name="[80]"></a>main</STRONG> (Thumb, 514 bytes, Stack size 16 bytes, main.o(.text))
+<P><STRONG><a name="[80]"></a>main</STRONG> (Thumb, 506 bytes, Stack size 16 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1632 + Unknown Stack Size
 <LI>Call Chain = main &rArr; Task_Process_Commands &rArr; MQTT_PubState &rArr; HGQ_ESP8266_MQTTPUB_Fast &rArr; __2snprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart_init
 <LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;font_init
-<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_init
 <LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;W25QXX_Init
 <LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Relay_Set
@@ -328,7 +328,7 @@ Global Symbols
 <LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_VL53L0X_I2C_Init
 <LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_VL53L0X_Begin
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_Init
-<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 <LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ResetCache
 <LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Init
 <LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_GetBrightnessNow
@@ -339,16 +339,16 @@ Global Symbols
 <LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_Init
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_RC522
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Sensors
-<LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
-<LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
-<LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Local_Time_Tick
-<LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Network_Check
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
+<LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Local_Time_Tick
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Network_Check
+<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
 <LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MQTT_PubTelemetry
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 <LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncpy
-<LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcpy
+<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcpy
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
@@ -563,7 +563,7 @@ Global Symbols
 <LI><a href="#[d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_RD_DATA
 <LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_WR_DATA
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_WR_REG
-<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Display_Dir
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
@@ -576,8 +576,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_SetCursor
 <LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_WriteRAM_Prepare
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
-<LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
 <LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_DrawFramework
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DrawPlusMinusBtn
 <LI><a href="#[1b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DrawBottomBtn
@@ -603,7 +603,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_DrawLine
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
+<BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DrawPlusMinusBtn
 <LI><a href="#[1b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DrawBottomBtn
 </UL>
@@ -640,7 +640,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Pow
 <LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowChar
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 <LI><a href="#[193]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Adj_Info_Show
 </UL>
 
@@ -654,7 +654,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowChar
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DrawPlusMinusBtn
 <LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Adjust
 <LI><a href="#[193]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Adj_Info_Show
@@ -825,12 +825,6 @@ Global Symbols
 <LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ReadReg
 <LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Init
 <LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_VL53L0X_I2C_Init
-<LI><a href="#[17c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Read_Byte
-<LI><a href="#[177]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Stop
-<LI><a href="#[176]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Start
-<LI><a href="#[174]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_Delay
-<LI><a href="#[173]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IIC_NAck
-<LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IIC_Ack
 <LI><a href="#[15e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;spi_rw
 <LI><a href="#[157]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_NAck
 <LI><a href="#[156]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_Ack
@@ -862,13 +856,19 @@ Global Symbols
 <LI><a href="#[19c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_Start
 <LI><a href="#[18b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Read_AD
 <LI><a href="#[18a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Write_Byte
+<LI><a href="#[17c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Read_Byte
+<LI><a href="#[177]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Stop
+<LI><a href="#[176]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Start
+<LI><a href="#[174]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_Delay
+<LI><a href="#[173]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IIC_NAck
+<LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IIC_Ack
 </UL>
 
 <P><STRONG><a name="[10d]"></a>delay_xms</STRONG> (Thumb, 72 bytes, Stack size 0 bytes, delay.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<BR><BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 </UL>
 
-<P><STRONG><a name="[9d]"></a>delay_ms</STRONG> (Thumb, 56 bytes, Stack size 16 bytes, delay.o(.text))
+<P><STRONG><a name="[9e]"></a>delay_ms</STRONG> (Thumb, 56 bytes, Stack size 16 bytes, delay.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = delay_ms
 </UL>
 <BR>[Calls]<UL><LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_xms
@@ -881,8 +881,7 @@ Global Symbols
 <LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_Read
 <LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_Init
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
-<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
+<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 <LI><a href="#[167]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rc522_reset
 <LI><a href="#[158]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Wait_Reply
 <LI><a href="#[137]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;AT24CXX_WriteOneByte
@@ -892,6 +891,7 @@ Global Symbols
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_Init
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Scan
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 </UL>
 
 <P><STRONG><a name="[85]"></a>_sys_exit</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, usart.o(.text))
@@ -1204,8 +1204,6 @@ Global Symbols
 <LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_VL53L0X_I2C_Init
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_Init
 <LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_RC522_Init
-<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
-<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
 <LI><a href="#[155]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SCL_OUT_OD
 <LI><a href="#[154]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_OUT_OD
 <LI><a href="#[153]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_IN
@@ -1219,6 +1217,8 @@ Global Symbols
 <LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Init
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_Init
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
+<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
 </UL>
 
 <P><STRONG><a name="[215]"></a>GPIO_StructInit</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, stm32f4xx_gpio.o(.text), UNUSED)
@@ -1423,8 +1423,6 @@ Global Symbols
 <LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_VL53L0X_I2C_Init
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_Init
 <LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_RC522_Init
-<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
-<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
 <LI><a href="#[152]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_Init
 <LI><a href="#[144]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_Init
 <LI><a href="#[130]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IIC_Init
@@ -1432,6 +1430,8 @@ Global Symbols
 <LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Init
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_Init
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
+<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
 </UL>
 
 <P><STRONG><a name="[24c]"></a>RCC_AHB2PeriphClockCmd</STRONG> (Thumb, 78 bytes, Stack size 0 bytes, stm32f4xx_rcc.o(.text), UNUSED)
@@ -1875,7 +1875,7 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = font_init &rArr; W25QXX_Init &rArr; SPI1_Init &rArr; GPIO_PinAFConfig
 </UL>
 <BR>[Calls]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;W25QXX_Read
-<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;W25QXX_Init
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -1904,8 +1904,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowChar
 <LI><a href="#[12c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_Font
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
-<LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
 <LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_DrawFramework
 <LI><a href="#[12e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_Str_Mid
 <LI><a href="#[1b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DrawBottomBtn
@@ -1944,7 +1944,7 @@ Global Symbols
 <P><STRONG><a name="[137]"></a>AT24CXX_WriteOneByte</STRONG> (Thumb, 80 bytes, Stack size 16 bytes, 24cxx.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = AT24CXX_WriteOneByte &rArr; delay_ms
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[134]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IIC_Wait_Ack
 <LI><a href="#[136]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IIC_Stop
 <LI><a href="#[132]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IIC_Start
@@ -1988,7 +1988,7 @@ Global Symbols
 <P><STRONG><a name="[c4]"></a>HGQ_AHT20_Init</STRONG> (Thumb, 42 bytes, Stack size 8 bytes, hgq_aht20.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = HGQ_AHT20_Init &rArr; HGQ_AHT20_WriteCmd &rArr; HGQ_IIC2_WaitAck &rArr; HGQ_IIC2_Stop &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[144]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_Init
 <LI><a href="#[13d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_WriteCmd
 </UL>
@@ -1998,7 +1998,7 @@ Global Symbols
 <P><STRONG><a name="[b2]"></a>HGQ_AHT20_Read</STRONG> (Thumb, 210 bytes, Stack size 32 bytes, hgq_aht20.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 108<LI>Call Chain = HGQ_AHT20_Read &rArr; HGQ_AHT20_ReadBytes &rArr; HGQ_IIC2_ReadByte &rArr; HGQ_IIC2_NAck &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[142]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_ReadBytes
 <LI><a href="#[13d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_WriteCmd
 </UL>
@@ -2020,10 +2020,10 @@ Global Symbols
 <P><STRONG><a name="[13e]"></a>HGQ_IIC2_Start</STRONG> (Thumb, 58 bytes, Stack size 8 bytes, hgq_myiic2.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = HGQ_IIC2_Start &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[146]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[142]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_ReadBytes
 <LI><a href="#[13d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_WriteCmd
@@ -2032,10 +2032,10 @@ Global Symbols
 <P><STRONG><a name="[141]"></a>HGQ_IIC2_Stop</STRONG> (Thumb, 58 bytes, Stack size 8 bytes, hgq_myiic2.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = HGQ_IIC2_Stop &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[146]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[140]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_WaitAck
 <LI><a href="#[142]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_ReadBytes
@@ -2045,11 +2045,11 @@ Global Symbols
 <P><STRONG><a name="[140]"></a>HGQ_IIC2_WaitAck</STRONG> (Thumb, 88 bytes, Stack size 8 bytes, hgq_myiic2.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = HGQ_IIC2_WaitAck &rArr; HGQ_IIC2_Stop &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[145]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_SDA_IN
 <LI><a href="#[141]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_Stop
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[142]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_ReadBytes
 <LI><a href="#[13d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_WriteCmd
@@ -2058,10 +2058,10 @@ Global Symbols
 <P><STRONG><a name="[149]"></a>HGQ_IIC2_Ack</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, hgq_myiic2.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = HGQ_IIC2_Ack &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[146]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_ReadByte
 </UL>
@@ -2069,10 +2069,10 @@ Global Symbols
 <P><STRONG><a name="[14a]"></a>HGQ_IIC2_NAck</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, hgq_myiic2.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = HGQ_IIC2_NAck &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[146]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_ReadByte
 </UL>
@@ -2080,10 +2080,10 @@ Global Symbols
 <P><STRONG><a name="[13f]"></a>HGQ_IIC2_SendByte</STRONG> (Thumb, 92 bytes, Stack size 16 bytes, hgq_myiic2.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = HGQ_IIC2_SendByte &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[146]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[142]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_ReadBytes
 <LI><a href="#[13d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_WriteCmd
@@ -2092,12 +2092,12 @@ Global Symbols
 <P><STRONG><a name="[143]"></a>HGQ_IIC2_ReadByte</STRONG> (Thumb, 86 bytes, Stack size 16 bytes, hgq_myiic2.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 60<LI>Call Chain = HGQ_IIC2_ReadByte &rArr; HGQ_IIC2_NAck &rArr; HGQ_IIC2_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[14a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_NAck
 <LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_Ack
 <LI><a href="#[145]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC2_SDA_IN
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[142]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_AHT20_ReadBytes
 </UL>
@@ -2105,7 +2105,7 @@ Global Symbols
 <P><STRONG><a name="[b4]"></a>HGQ_BH1750_Init</STRONG> (Thumb, 78 bytes, Stack size 8 bytes, hgq_bh1750.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 68<LI>Call Chain = HGQ_BH1750_Init &rArr; BH1750_WriteCmd &rArr; HGQ_IIC3_WaitAck &rArr; HGQ_IIC3_Stop &rArr; HGQ_IIC3_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[152]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_Init
 <LI><a href="#[14b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_WriteCmd
 </UL>
@@ -2136,10 +2136,10 @@ Global Symbols
 <P><STRONG><a name="[14c]"></a>HGQ_IIC3_Start</STRONG> (Thumb, 58 bytes, Stack size 8 bytes, hgq_myiic3.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = HGQ_IIC3_Start &rArr; HGQ_IIC3_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[154]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[150]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_Read2
 <LI><a href="#[14b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_WriteCmd
@@ -2148,10 +2148,10 @@ Global Symbols
 <P><STRONG><a name="[14f]"></a>HGQ_IIC3_Stop</STRONG> (Thumb, 58 bytes, Stack size 8 bytes, hgq_myiic3.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = HGQ_IIC3_Stop &rArr; HGQ_IIC3_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[154]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[14e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_WaitAck
 <LI><a href="#[150]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_Read2
@@ -2161,11 +2161,11 @@ Global Symbols
 <P><STRONG><a name="[14e]"></a>HGQ_IIC3_WaitAck</STRONG> (Thumb, 88 bytes, Stack size 8 bytes, hgq_myiic3.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = HGQ_IIC3_WaitAck &rArr; HGQ_IIC3_Stop &rArr; HGQ_IIC3_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[153]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_IN
 <LI><a href="#[14f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_Stop
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[150]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_Read2
 <LI><a href="#[14b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_WriteCmd
@@ -2174,10 +2174,10 @@ Global Symbols
 <P><STRONG><a name="[156]"></a>HGQ_IIC3_Ack</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, hgq_myiic3.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = HGQ_IIC3_Ack &rArr; HGQ_IIC3_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[154]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[151]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_ReadByte
 </UL>
@@ -2185,10 +2185,10 @@ Global Symbols
 <P><STRONG><a name="[157]"></a>HGQ_IIC3_NAck</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, hgq_myiic3.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = HGQ_IIC3_NAck &rArr; HGQ_IIC3_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[154]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[151]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_ReadByte
 </UL>
@@ -2196,10 +2196,10 @@ Global Symbols
 <P><STRONG><a name="[14d]"></a>HGQ_IIC3_SendByte</STRONG> (Thumb, 92 bytes, Stack size 16 bytes, hgq_myiic3.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = HGQ_IIC3_SendByte &rArr; HGQ_IIC3_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[154]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_OUT_OD
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[150]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_Read2
 <LI><a href="#[14b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_WriteCmd
@@ -2208,34 +2208,34 @@ Global Symbols
 <P><STRONG><a name="[151]"></a>HGQ_IIC3_ReadByte</STRONG> (Thumb, 86 bytes, Stack size 16 bytes, hgq_myiic3.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 60<LI>Call Chain = HGQ_IIC3_ReadByte &rArr; HGQ_IIC3_NAck &rArr; HGQ_IIC3_SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[157]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_NAck
 <LI><a href="#[156]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_Ack
 <LI><a href="#[153]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_IIC3_SDA_IN
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[150]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_Read2
 </UL>
 
-<P><STRONG><a name="[9e]"></a>HGQ_ESP8266_SendCmd</STRONG> (Thumb, 36 bytes, Stack size 16 bytes, hgq_esp8266.o(.text))
+<P><STRONG><a name="[9f]"></a>HGQ_ESP8266_SendCmd</STRONG> (Thumb, 36 bytes, Stack size 16 bytes, hgq_esp8266.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = HGQ_ESP8266_SendCmd &rArr; Wait_Reply &rArr; delay_ms
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_SendString
+<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_SendString
 <LI><a href="#[15a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_IT_ClearRxBuffer
 <LI><a href="#[158]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Wait_Reply
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTSUB
-<LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_JoinAP
-<LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_EnableNTP
-<LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_ConnectMQTT
-<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_CheckStatus
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<BR>[Called By]<UL><LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTSUB
+<LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_JoinAP
+<LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_EnableNTP
+<LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_ConnectMQTT
+<LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_CheckStatus
+<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 <LI><a href="#[15b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTPUB
 </UL>
 
 <P><STRONG><a name="[15b]"></a>HGQ_ESP8266_MQTTPUB</STRONG> (Thumb, 62 bytes, Stack size 792 bytes, hgq_esp8266.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<BR><BR>[Calls]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 <LI><a href="#[15c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EscapeString
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 </UL>
@@ -2244,7 +2244,7 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 928 + Unknown Stack Size
 <LI>Call Chain = HGQ_ESP8266_MQTTPUB_Fast &rArr; __2snprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_SendString
+<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_SendString
 <LI><a href="#[15c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EscapeString
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 </UL>
@@ -2255,50 +2255,50 @@ Global Symbols
 
 <P><STRONG><a name="[2c9]"></a>HGQ_ESP8266_Init</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, hgq_esp8266.o(.text), UNUSED)
 
-<P><STRONG><a name="[9f]"></a>HGQ_ESP8266_JoinAP</STRONG> (Thumb, 36 bytes, Stack size 144 bytes, hgq_esp8266.o(.text))
+<P><STRONG><a name="[a0]"></a>HGQ_ESP8266_JoinAP</STRONG> (Thumb, 36 bytes, Stack size 144 bytes, hgq_esp8266.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 280 + Unknown Stack Size
 <LI>Call Chain = HGQ_ESP8266_JoinAP &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<BR>[Calls]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 </UL>
 
-<P><STRONG><a name="[a0]"></a>HGQ_ESP8266_ConnectMQTT</STRONG> (Thumb, 64 bytes, Stack size 152 bytes, hgq_esp8266.o(.text))
+<P><STRONG><a name="[a1]"></a>HGQ_ESP8266_ConnectMQTT</STRONG> (Thumb, 64 bytes, Stack size 152 bytes, hgq_esp8266.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 288 + Unknown Stack Size
 <LI>Call Chain = HGQ_ESP8266_ConnectMQTT &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<BR>[Calls]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 </UL>
 
-<P><STRONG><a name="[a1]"></a>HGQ_ESP8266_MQTTSUB</STRONG> (Thumb, 36 bytes, Stack size 144 bytes, hgq_esp8266.o(.text))
+<P><STRONG><a name="[a2]"></a>HGQ_ESP8266_MQTTSUB</STRONG> (Thumb, 36 bytes, Stack size 144 bytes, hgq_esp8266.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 280 + Unknown Stack Size
 <LI>Call Chain = HGQ_ESP8266_MQTTSUB &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<BR>[Calls]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 </UL>
 
-<P><STRONG><a name="[a2]"></a>HGQ_ESP8266_EnableNTP</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, hgq_esp8266.o(.text))
+<P><STRONG><a name="[a3]"></a>HGQ_ESP8266_EnableNTP</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, hgq_esp8266.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = HGQ_ESP8266_EnableNTP &rArr; HGQ_ESP8266_SendCmd &rArr; Wait_Reply &rArr; delay_ms
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<BR>[Calls]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 </UL>
 
 <P><STRONG><a name="[cd]"></a>HGQ_ESP8266_GetNTPTime</STRONG> (Thumb, 220 bytes, Stack size 40 bytes, hgq_esp8266.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 128<LI>Call Chain = HGQ_ESP8266_GetNTPTime &rArr; atoi &rArr; strtol &rArr; _strtoul
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_SendString
-<LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_IT_GetChar
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_SendString
+<LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_IT_GetChar
 <LI><a href="#[15a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_IT_ClearRxBuffer
 <LI><a href="#[159]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
@@ -2308,12 +2308,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a4]"></a>HGQ_ESP8266_CheckStatus</STRONG> (Thumb, 24 bytes, Stack size 8 bytes, hgq_esp8266.o(.text))
+<P><STRONG><a name="[a5]"></a>HGQ_ESP8266_CheckStatus</STRONG> (Thumb, 24 bytes, Stack size 8 bytes, hgq_esp8266.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = HGQ_ESP8266_CheckStatus &rArr; HGQ_ESP8266_SendCmd &rArr; Wait_Reply &rArr; delay_ms
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<BR>[Calls]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Network_Check
+<BR>[Called By]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Network_Check
 </UL>
 
 <P><STRONG><a name="[c5]"></a>HGQ_RC522_Init</STRONG> (Thumb, 184 bytes, Stack size 16 bytes, hgq_rc522.o(.text))
@@ -2321,7 +2321,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
-<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[160]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin_lo
 <LI><a href="#[15f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin_hi
 <LI><a href="#[167]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rc522_reset
@@ -2362,11 +2362,11 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[9c]"></a>HGQ_USART2_SendString</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, hgq_usart.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<P><STRONG><a name="[9d]"></a>HGQ_USART2_SendString</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, hgq_usart.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 <LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTPUB_Fast
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_GetNTPTime
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 </UL>
 
 <P><STRONG><a name="[2ca]"></a>HGQ_USART2_SetRxCallback</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, hgq_usart.o(.text), UNUSED)
@@ -2375,14 +2375,14 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[110]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ITConfig
 </UL>
 
-<P><STRONG><a name="[a8]"></a>HGQ_USART2_IT_GetChar</STRONG> (Thumb, 62 bytes, Stack size 0 bytes, hgq_usart.o(.text))
+<P><STRONG><a name="[a9]"></a>HGQ_USART2_IT_GetChar</STRONG> (Thumb, 62 bytes, Stack size 0 bytes, hgq_usart.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_GetNTPTime
-<LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
+<LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
 <LI><a href="#[158]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Wait_Reply
 </UL>
 
 <P><STRONG><a name="[15a]"></a>HGQ_USART2_IT_ClearRxBuffer</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, hgq_usart.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<BR><BR>[Called By]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_GetNTPTime
 </UL>
 
@@ -2490,9 +2490,9 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
-<LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_Init
+<BR>[Called By]<UL><LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_Init
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 </UL>
 
 <P><STRONG><a name="[176]"></a>CT_IIC_Start</STRONG> (Thumb, 62 bytes, Stack size 8 bytes, ctiic.o(.text))
@@ -2501,12 +2501,12 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[174]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_Delay
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
-<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
-<LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
+<BR>[Called By]<UL><LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
 <LI><a href="#[184]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_WR_Reg
 <LI><a href="#[181]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_WR_Reg
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_RD_Reg
+<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
+<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
 </UL>
 
 <P><STRONG><a name="[177]"></a>CT_IIC_Stop</STRONG> (Thumb, 56 bytes, Stack size 8 bytes, ctiic.o(.text))
@@ -2515,13 +2515,13 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[174]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_Delay
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
-<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
-<LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Wait_Ack
-<LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
+<BR>[Called By]<UL><LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
 <LI><a href="#[184]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_WR_Reg
 <LI><a href="#[181]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_WR_Reg
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_RD_Reg
+<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
+<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
+<LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Wait_Ack
 </UL>
 
 <P><STRONG><a name="[178]"></a>CT_IIC_Wait_Ack</STRONG> (Thumb, 78 bytes, Stack size 8 bytes, ctiic.o(.text))
@@ -2530,12 +2530,12 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[177]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Stop
 <LI><a href="#[174]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_Delay
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
-<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
-<LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
+<BR>[Called By]<UL><LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
 <LI><a href="#[184]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_WR_Reg
 <LI><a href="#[181]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_WR_Reg
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_RD_Reg
+<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
+<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
 </UL>
 
 <P><STRONG><a name="[179]"></a>CT_IIC_Ack</STRONG> (Thumb, 66 bytes, Stack size 8 bytes, ctiic.o(.text))
@@ -2559,12 +2559,12 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[174]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_Delay
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
-<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
-<LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
+<BR>[Called By]<UL><LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
 <LI><a href="#[184]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_WR_Reg
 <LI><a href="#[181]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_WR_Reg
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_RD_Reg
+<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
+<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
 </UL>
 
 <P><STRONG><a name="[17c]"></a>CT_IIC_Read_Byte</STRONG> (Thumb, 96 bytes, Stack size 16 bytes, ctiic.o(.text))
@@ -2575,9 +2575,9 @@ Global Symbols
 <LI><a href="#[179]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Ack
 <LI><a href="#[174]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_Delay
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
-<LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
+<BR>[Called By]<UL><LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_RD_Reg
+<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
 </UL>
 
 <P><STRONG><a name="[17d]"></a>FT5206_WR_Reg</STRONG> (Thumb, 82 bytes, Stack size 24 bytes, ft5206.o(.text))
@@ -2600,8 +2600,8 @@ Global Symbols
 <LI><a href="#[177]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Stop
 <LI><a href="#[176]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Start
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
-<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Scan
+<BR>[Called By]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Scan
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 </UL>
 
 <P><STRONG><a name="[17f]"></a>FT5206_Init</STRONG> (Thumb, 316 bytes, Stack size 24 bytes, ft5206.o(.text))
@@ -2610,25 +2610,25 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
-<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
-<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
-<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[181]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_WR_Reg
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_RD_Reg
+<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
+<LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_WR_Reg
+<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
 </UL>
 <BR>[Called By]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Init
 </UL>
 
 <P><STRONG><a name="[62]"></a>FT5206_Scan</STRONG> (Thumb, 934 bytes, Stack size 32 bytes, ft5206.o(.text))
-<BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = FT5206_Scan &rArr; FT5206_RD_Reg &rArr; CT_IIC_Read_Byte &rArr; CT_IIC_NAck &rArr; CT_Delay
+<BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = FT5206_Scan &rArr; GT9147_RD_Reg &rArr; CT_IIC_Read_Byte &rArr; CT_IIC_NAck &rArr; CT_Delay
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 <LI><a href="#[181]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_WR_Reg
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_RD_Reg
+<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_RD_Reg
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> touch.o(.text)
 </UL>
@@ -2640,11 +2640,11 @@ Global Symbols
 <LI><a href="#[177]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Stop
 <LI><a href="#[176]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Start
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
-<LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Scan
+<BR>[Called By]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Scan
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
 <LI><a href="#[182]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Send_Cfg
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Scan
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 </UL>
 
 <P><STRONG><a name="[182]"></a>GT9147_Send_Cfg</STRONG> (Thumb, 86 bytes, Stack size 16 bytes, gt9147.o(.text))
@@ -2664,10 +2664,10 @@ Global Symbols
 <LI><a href="#[177]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Stop
 <LI><a href="#[176]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Start
 </UL>
-<BR>[Called By]<UL><LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
-<LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Scan
+<BR>[Called By]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Scan
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Scan
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 </UL>
 
 <P><STRONG><a name="[183]"></a>GT9147_Init</STRONG> (Thumb, 292 bytes, Stack size 24 bytes, gt9147.o(.text))
@@ -2676,13 +2676,13 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
-<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[182]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Send_Cfg
 <LI><a href="#[181]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_WR_Reg
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_RD_Reg
+<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
 </UL>
 <BR>[Called By]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Init
 </UL>
@@ -2733,11 +2733,11 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
-<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[186]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_SensorControl
 <LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_RD_Reg
+<LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CT_IIC_Init
 </UL>
 <BR>[Called By]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Init
 </UL>
@@ -2850,7 +2850,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowString
 <LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Clear
-<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[194]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_sqrt
 <LI><a href="#[195]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[197]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cdrcmple
@@ -2874,7 +2874,6 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
 <LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Clear
-<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 <LI><a href="#[12f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;AT24CXX_Init
 <LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Adjust
 <LI><a href="#[192]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Get_Adjdata
@@ -2882,6 +2881,7 @@ Global Symbols
 <LI><a href="#[18d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TP_Read_XY
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_Init
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> touch.o(.data)
 </UL>
@@ -2955,14 +2955,15 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[ab]"></a>HGQ_UI_ShowPopup</STRONG> (Thumb, 174 bytes, Stack size 40 bytes, hgq_ui.o(.text))
+<P><STRONG><a name="[99]"></a>HGQ_UI_ShowPopup</STRONG> (Thumb, 174 bytes, Stack size 40 bytes, hgq_ui.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 288<LI>Call Chain = HGQ_UI_ShowPopup &rArr; Show_Str &rArr; Show_Font &rArr; Get_HzMat &rArr; W25QXX_Read &rArr; SPI1_ReadWriteByte
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_DrawRectangle
 <LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fill
 <LI><a href="#[12d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_Str
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
 </UL>
 
 <P><STRONG><a name="[c3]"></a>HGQ_UI_DrawFramework</STRONG> (Thumb, 558 bytes, Stack size 32 bytes, hgq_ui.o(.text))
@@ -2977,7 +2978,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[9b]"></a>HGQ_UI_Update</STRONG> (Thumb, 1844 bytes, Stack size 64 bytes, hgq_ui.o(.text))
+<P><STRONG><a name="[9c]"></a>HGQ_UI_Update</STRONG> (Thumb, 1844 bytes, Stack size 64 bytes, hgq_ui.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 376<LI>Call Chain = HGQ_UI_Update &rArr; DrawBottomBtn &rArr; Show_Str &rArr; Show_Font &rArr; Get_HzMat &rArr; W25QXX_Read &rArr; SPI1_ReadWriteByte
 </UL>
 <BR>[Calls]<UL><LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_ShowString
@@ -2992,15 +2993,15 @@ Global Symbols
 <LI><a href="#[1b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_Value_Str
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 </UL>
 
-<P><STRONG><a name="[aa]"></a>HGQ_UI_TouchBtn_Check</STRONG> (Thumb, 18 bytes, Stack size 16 bytes, hgq_ui.o(.text))
+<P><STRONG><a name="[ab]"></a>HGQ_UI_TouchBtn_Check</STRONG> (Thumb, 18 bytes, Stack size 16 bytes, hgq_ui.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = HGQ_UI_TouchBtn_Check &rArr; IsBtn &rArr; IsIn
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IsBtn
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
 </UL>
 
 <P><STRONG><a name="[ac]"></a>HGQ_UI_TouchBtn_Mode</STRONG> (Thumb, 18 bytes, Stack size 16 bytes, hgq_ui.o(.text))
@@ -3008,7 +3009,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IsBtn
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
 </UL>
 
 <P><STRONG><a name="[ad]"></a>HGQ_UI_TouchBtn_On</STRONG> (Thumb, 80 bytes, Stack size 16 bytes, hgq_ui.o(.text))
@@ -3016,7 +3017,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IsBtn
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
 </UL>
 
 <P><STRONG><a name="[ae]"></a>HGQ_UI_TouchBtn_Off</STRONG> (Thumb, 18 bytes, Stack size 16 bytes, hgq_ui.o(.text))
@@ -3024,7 +3025,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IsBtn
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
 </UL>
 
 <P><STRONG><a name="[af]"></a>HGQ_UI_TouchBtn_BriUp</STRONG> (Thumb, 36 bytes, Stack size 24 bytes, hgq_ui.o(.text))
@@ -3032,7 +3033,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IsIn
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
 </UL>
 
 <P><STRONG><a name="[b0]"></a>HGQ_UI_TouchBtn_BriDown</STRONG> (Thumb, 36 bytes, Stack size 24 bytes, hgq_ui.o(.text))
@@ -3040,7 +3041,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IsIn
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
 </UL>
 
 <P><STRONG><a name="[1bc]"></a>LED0_PWM_Init</STRONG> (Thumb, 166 bytes, Stack size 48 bytes, led.o(.text))
@@ -3090,8 +3091,8 @@ Global Symbols
 <P><STRONG><a name="[cc]"></a>Relay_Set</STRONG> (Thumb, 26 bytes, Stack size 8 bytes, led.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = Relay_Set
 </UL>
-<BR>[Calls]<UL><LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+<LI><a href="#[148]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -3108,11 +3109,10 @@ Global Symbols
 <LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Init
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_RC522
-<LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
-<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTT2001A_Init
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
+<LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Init
 </UL>
 
 <P><STRONG><a name="[8c]"></a>__2sprintf</STRONG> (Thumb, 34 bytes, Stack size 32 bytes, noretval__2sprintf.o(.text))
@@ -3122,12 +3122,12 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sputc
 <LI><a href="#[1c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_common
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTSUB
-<LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_JoinAP
-<LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_ConnectMQTT
+<BR>[Called By]<UL><LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTSUB
+<LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_JoinAP
+<LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_ConnectMQTT
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_RC522
-<LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Local_Time_Tick
+<LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Local_Time_Tick
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
 <LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UID_ToHexNoSpace
 </UL>
@@ -3143,8 +3143,8 @@ Global Symbols
 <LI><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MQTT_PubState
 <LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MQTT_PubTelemetry
 <LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Topic_Make
-<LI><a href="#[16d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_RC522_UIDToString
 <LI><a href="#[15b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTPUB
+<LI><a href="#[16d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_RC522_UIDToString
 </UL>
 
 <P><STRONG><a name="[1c5]"></a>_printf_pre_padding</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, _printf_pad.o(.text))
@@ -3219,22 +3219,22 @@ Global Symbols
 <P><STRONG><a name="[90]"></a>strstr</STRONG> (Thumb, 36 bytes, Stack size 12 bytes, strstr.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = strstr
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_GetNTPTime
-<LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
+<LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
 <LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;KV_Get
 <LI><a href="#[158]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Wait_Reply
 </UL>
 
-<P><STRONG><a name="[99]"></a>strcpy</STRONG> (Thumb, 72 bytes, Stack size 12 bytes, strcpy.o(.text))
+<P><STRONG><a name="[9a]"></a>strcpy</STRONG> (Thumb, 72 bytes, Stack size 12 bytes, strcpy.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = strcpy
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
 </UL>
 
-<P><STRONG><a name="[a7]"></a>strrchr</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, strrchr.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
+<P><STRONG><a name="[a8]"></a>strrchr</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, strrchr.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
 </UL>
 
 <P><STRONG><a name="[8e]"></a>strlen</STRONG> (Thumb, 62 bytes, Stack size 8 bytes, strlen.o(.text))
@@ -3242,8 +3242,8 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
 <LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;KV_Get
-<LI><a href="#[16d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_RC522_UIDToString
 <LI><a href="#[12e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_Str_Mid
+<LI><a href="#[16d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_RC522_UIDToString
 </UL>
 
 <P><STRONG><a name="[8f]"></a>__aeabi_memcpy</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, rt_memcpy_v6.o(.text))
@@ -3259,7 +3259,7 @@ Global Symbols
 <P><STRONG><a name="[1b7]"></a>__aeabi_memcpy4</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, rt_memcpy_w.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __aeabi_memcpy4
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 <LI><a href="#[1cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_memcpy
 </UL>
 
@@ -3301,7 +3301,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[159]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TaskQueue_Pop
@@ -3309,13 +3309,13 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[97]"></a>strcmp</STRONG> (Thumb, 128 bytes, Stack size 0 bytes, strcmpv7m.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<BR><BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
-<LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_get_lc_ctype
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GT9147_Init
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FT5206_Scan
+<LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_get_lc_ctype
 </UL>
 
 <P><STRONG><a name="[2d8]"></a>__use_two_region_memory</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
@@ -3329,11 +3329,11 @@ Global Symbols
 <P><STRONG><a name="[2dc]"></a>__use_no_semihosting_swi</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, use_no_semi.o(.text), UNUSED)
 
 <P><STRONG><a name="[1cb]"></a>__aeabi_errno_addr</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, rt_errno_addr_intlibspace.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[1d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_strtoul
-<LI><a href="#[1cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strtol
+<BR><BR>[Called By]<UL><LI><a href="#[1cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strtol
 <LI><a href="#[1d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__set_errno
 <LI><a href="#[1d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__read_errno
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;atoi
+<LI><a href="#[1d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_strtoul
 </UL>
 
 <P><STRONG><a name="[2dd]"></a>__errno$intlibspace</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, rt_errno_addr_intlibspace.o(.text), UNUSED)
@@ -3407,8 +3407,8 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 120 + Unknown Stack Size
 <LI>Call Chain = _printf_char_file &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ferror
-<LI><a href="#[1c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_common
+<BR>[Calls]<UL><LI><a href="#[1c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_common
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ferror
 </UL>
 <BR>[Called By]<UL><LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
@@ -3416,9 +3416,9 @@ Global Symbols
 <P><STRONG><a name="[1cc]"></a>strtol</STRONG> (Thumb, 112 bytes, Stack size 32 bytes, strtol.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = strtol &rArr; _strtoul
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_strtoul
+<BR>[Calls]<UL><LI><a href="#[1cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_errno_addr
+<LI><a href="#[1d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_strtoul
 <LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_ctype_table
-<LI><a href="#[1cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_errno_addr
 </UL>
 <BR>[Called By]<UL><LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;atoi
 </UL>
@@ -3442,8 +3442,8 @@ Global Symbols
 <P><STRONG><a name="[1d6]"></a>_strtoul</STRONG> (Thumb, 158 bytes, Stack size 40 bytes, _strtoul.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = _strtoul
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_chval
-<LI><a href="#[1cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_errno_addr
+<BR>[Calls]<UL><LI><a href="#[1cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_errno_addr
+<LI><a href="#[1d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_chval
 </UL>
 <BR>[Called By]<UL><LI><a href="#[1cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strtol
 </UL>
@@ -3651,7 +3651,7 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncpy
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
+<BR>[Called By]<UL><LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Receive_Network
 </UL>
 
 <P><STRONG><a name="[88]"></a>TaskQueue_Pop</STRONG> (Thumb, 74 bytes, Stack size 8 bytes, main.o(.text))
@@ -3715,8 +3715,8 @@ Local Symbols
 <LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Topic_Make
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<BR>[Called By]<UL><LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_TouchProcess
+<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Process_Commands
 </UL>
 
@@ -3730,17 +3730,18 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_RC522
 </UL>
 
-<P><STRONG><a name="[95]"></a>Task_Process_Commands</STRONG> (Thumb, 962 bytes, Stack size 408 bytes, main.o(.text))
+<P><STRONG><a name="[95]"></a>Task_Process_Commands</STRONG> (Thumb, 986 bytes, Stack size 408 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1616 + Unknown Stack Size
 <LI>Call Chain = Task_Process_Commands &rArr; MQTT_PubState &rArr; HGQ_ESP8266_MQTTPUB_Fast &rArr; __2snprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MQTT_PubState
+<BR>[Calls]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
+<LI><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MQTT_PubState
 <LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;KV_Get
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TaskQueue_Pop
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 <LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncpy
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
-<LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcpy
+<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcpy
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;atoi
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
@@ -3748,35 +3749,35 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[9a]"></a>Network_Connect_Flow</STRONG> (Thumb, 156 bytes, Stack size 8 bytes, main.o(.text))
+<P><STRONG><a name="[9b]"></a>Network_Connect_Flow</STRONG> (Thumb, 156 bytes, Stack size 8 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1216 + Unknown Stack Size
 <LI>Call Chain = Network_Connect_Flow &rArr; MQTT_PubState &rArr; HGQ_ESP8266_MQTTPUB_Fast &rArr; __2snprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_SendString
-<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
-<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
-<LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTSUB
-<LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_JoinAP
-<LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_EnableNTP
-<LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_ConnectMQTT
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_SendString
+<LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_MQTTSUB
+<LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_JoinAP
+<LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_EnableNTP
+<LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_ConnectMQTT
 <LI><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MQTT_PubState
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Network_Check
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Task_Network_Check
 </UL>
 
-<P><STRONG><a name="[a3]"></a>Task_Network_Check</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, main.o(.text))
+<P><STRONG><a name="[a4]"></a>Task_Network_Check</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1224 + Unknown Stack Size
 <LI>Call Chain = Task_Network_Check &rArr; Network_Connect_Flow &rArr; MQTT_PubState &rArr; HGQ_ESP8266_MQTTPUB_Fast &rArr; __2snprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_CheckStatus
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
+<BR>[Calls]<UL><LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_CheckStatus
+<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Network_Connect_Flow
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a5]"></a>Local_Time_Tick</STRONG> (Thumb, 168 bytes, Stack size 8 bytes, main.o(.text))
+<P><STRONG><a name="[a6]"></a>Local_Time_Tick</STRONG> (Thumb, 168 bytes, Stack size 8 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 144 + Unknown Stack Size
 <LI>Call Chain = Local_Time_Tick &rArr; __2sprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
@@ -3785,31 +3786,30 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a6]"></a>Task_Receive_Network</STRONG> (Thumb, 124 bytes, Stack size 16 bytes, main.o(.text))
+<P><STRONG><a name="[a7]"></a>Task_Receive_Network</STRONG> (Thumb, 124 bytes, Stack size 16 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = Task_Receive_Network &rArr; TaskQueue_Push &rArr; strncpy
 </UL>
-<BR>[Calls]<UL><LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_IT_GetChar
+<BR>[Calls]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_IT_GetChar
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TaskQueue_Push
-<LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strrchr
+<LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strrchr
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a9]"></a>APP_TouchProcess</STRONG> (Thumb, 630 bytes, Stack size 16 bytes, main.o(.text))
+<P><STRONG><a name="[aa]"></a>APP_TouchProcess</STRONG> (Thumb, 636 bytes, Stack size 16 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1224 + Unknown Stack Size
 <LI>Call Chain = APP_TouchProcess &rArr; MQTT_PubState &rArr; HGQ_ESP8266_MQTTPUB_Fast &rArr; __2snprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_On
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_Off
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_Mode
-<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_Check
+<LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_Check
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_BriUp
 <LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_BriDown
-<LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
+<LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_ShowPopup
 <LI><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MQTT_PubState
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
-<LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -3826,7 +3826,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[b7]"></a>Task_RC522</STRONG> (Thumb, 186 bytes, Stack size 80 bytes, main.o(.text))
+<P><STRONG><a name="[b7]"></a>Task_RC522</STRONG> (Thumb, 170 bytes, Stack size 80 bytes, main.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1080 + Unknown Stack Size
 <LI>Call Chain = Task_RC522 &rArr; MQTT_PubEvent &rArr; HGQ_ESP8266_MQTTPUB_Fast &rArr; __2snprintf &rArr; _printf_char_common &rArr; __printf
 </UL>
@@ -3975,12 +3975,12 @@ Local Symbols
 <P><STRONG><a name="[158]"></a>Wait_Reply</STRONG> (Thumb, 82 bytes, Stack size 24 bytes, hgq_esp8266.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = Wait_Reply &rArr; delay_ms
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_IT_GetChar
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_USART2_IT_GetChar
 <LI><a href="#[159]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
+<BR>[Called By]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_ESP8266_SendCmd
 </UL>
 
 <P><STRONG><a name="[15c]"></a>EscapeString</STRONG> (Thumb, 58 bytes, Stack size 20 bytes, hgq_esp8266.o(.text))
@@ -3993,10 +3993,10 @@ Local Symbols
 <P><STRONG><a name="[15e]"></a>spi_rw</STRONG> (Thumb, 102 bytes, Stack size 24 bytes, hgq_rc522.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = spi_rw &rArr; pin_lo
 </UL>
-<BR>[Calls]<UL><LI><a href="#[161]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ReadInputDataBit
-<LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
+<BR>[Calls]<UL><LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_us
 <LI><a href="#[160]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin_lo
 <LI><a href="#[15f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin_hi
+<LI><a href="#[161]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ReadInputDataBit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[163]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rc522_read_reg
 <LI><a href="#[162]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rc522_write_reg
@@ -4066,7 +4066,7 @@ Local Symbols
 <P><STRONG><a name="[167]"></a>rc522_reset</STRONG> (Thumb, 18 bytes, Stack size 8 bytes, hgq_rc522.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = rc522_reset &rArr; rc522_write_reg &rArr; spi_rw &rArr; pin_lo
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[162]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rc522_write_reg
 </UL>
 <BR>[Called By]<UL><LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_RC522_Init
@@ -4310,7 +4310,7 @@ Local Symbols
 <P><STRONG><a name="[1a9]"></a>wait_reg_bit</STRONG> (Thumb, 82 bytes, Stack size 32 bytes, hgq_vl53l0x.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 108<LI>Call Chain = wait_reg_bit &rArr; rd8 &rArr; I2C_ReadByte &rArr; I2C_NAck &rArr; SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[1a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rd8
 </UL>
 <BR>[Called By]<UL><LI><a href="#[1ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_raw_mm_once
@@ -4353,7 +4353,7 @@ Local Symbols
 <P><STRONG><a name="[1ae]"></a>read_raw_filtered</STRONG> (Thumb, 192 bytes, Stack size 64 bytes, hgq_vl53l0x.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 188<LI>Call Chain = read_raw_filtered &rArr; read_raw_mm_once &rArr; wait_reg_bit &rArr; rd8 &rArr; I2C_ReadByte &rArr; I2C_NAck &rArr; SDA_OUT_OD &rArr; GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
+<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[1af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sort_u16
 <LI><a href="#[1ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_raw_mm_once
 </UL>
@@ -4442,7 +4442,7 @@ Local Symbols
 <BR>[Calls]<UL><LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fill
 <LI><a href="#[12d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_Str
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 </UL>
 
 <P><STRONG><a name="[1b5]"></a>DrawBottomBtn</STRONG> (Thumb, 230 bytes, Stack size 64 bytes, hgq_ui.o(.text))
@@ -4452,7 +4452,7 @@ Local Symbols
 <LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fill
 <LI><a href="#[12d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_Str
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
+<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_Update
 </UL>
 
 <P><STRONG><a name="[1b6]"></a>DrawPlusMinusBtn</STRONG> (Thumb, 120 bytes, Stack size 40 bytes, hgq_ui.o(.text))
@@ -4481,7 +4481,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_On
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_Off
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_Mode
-<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_Check
+<LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HGQ_UI_TouchBtn_Check
 </UL>
 
 <P><STRONG><a name="[1ba]"></a>LED0_UpdateCCR</STRONG> (Thumb, 56 bytes, Stack size 8 bytes, led.o(.text))
