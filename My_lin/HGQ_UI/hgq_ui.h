@@ -9,7 +9,7 @@ typedef struct {
     int humi;           /* 湿度 */
     int lux;            /* 光照 */
     
-    /* 座位卡片数据 (新格式) */
+    /* 座位卡片数据 */
     char status[16];    /* 状态: 空闲/使用中/预约 */
     char user_str[20];  /* 用户: 姓名或UID */
     char reserve_t[16]; /* 预约时间: HH:MM */
@@ -30,13 +30,17 @@ void HGQ_UI_DrawFramework(void);
 void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_str);
 int HGQ_UI_GetBrightnessNow(void);
 
+/* 新增：重置缓存，强制刷新（用于关闭弹窗后） */
+void HGQ_UI_ResetCache(void);
+/* 新增：显示弹窗消息 */
+void HGQ_UI_ShowPopup(const char *msg);
+
 /* 触摸交互 */
-u8 HGQ_UI_TouchBtn_Manual(u16 x, u16 y);
-u8 HGQ_UI_TouchBtn_Auto(u16 x, u16 y);
-u8 HGQ_UI_TouchBtn_On(u16 x, u16 y);
-u8 HGQ_UI_TouchBtn_Off(u16 x, u16 y);
+u8 HGQ_UI_TouchBtn_Check(u16 x, u16 y); /* 新增：签到/签退按钮 (原位置0) */
+u8 HGQ_UI_TouchBtn_Mode(u16 x, u16 y);  /* 模式切换 (原位置1) */
+u8 HGQ_UI_TouchBtn_On(u16 x, u16 y);    /* 开灯 (原位置2) */
+u8 HGQ_UI_TouchBtn_Off(u16 x, u16 y);   /* 关灯 (原位置3) */
 u8 HGQ_UI_TouchBtn_BriUp(u16 x, u16 y);
 u8 HGQ_UI_TouchBtn_BriDown(u16 x, u16 y);
-u8 HGQ_UI_TouchLightBar(u16 x, u16 y, u8 *p);
 
 #endif

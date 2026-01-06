@@ -21,15 +21,31 @@ CLEANUP_INTERVAL_SEC = 30  # 后台清理任务间隔
 
 # ===================== 后台任务线程 =====================
 def background_task_loop():
-    """后台独立线程：处理过期、超时未签到等逻辑"""
+    """后台独立线程：处理过期、超时未签到等逻辑 + 广播时间"""
     print("[System] 后台监控线程已启动")
     while True:
         try:
             time.sleep(CLEANUP_INTERVAL_SEC)
+
+            # 1. 执行业务清理逻辑
             with db_lock:
                 _check_reservations_logic()
+
+            # 2. 【新增】广播服务器时间给STM32
+            _broadcast_time()
+
         except Exception as e:
             print(f"[System Error] 后台任务异常: {e}")
+
+
+def _broadcast_time():
+    """主动下发时间同步命令"""
+    now = datetime.now()
+    # 格式: HH:MM:SS
+    t_str = now.strftime("%H:%M:%S")
+    # 发送命令: type=time_sync&time=12:30:45
+    print(f"[System] 广播时间同步: {t_str}")
+    publish_cmd({"cmd": "time_sync", "time": t_str})
 
 
 def _check_reservations_logic():
@@ -144,7 +160,7 @@ def publish_cmd(payload: dict):
     if "cmd" in data: data["type"] = data.pop("cmd")
     parts = [f"{k}={v}" for k, v in data.items() if v is not None]
     msg_str = "&".join(parts)
-    print(f"[MQTT >>] {msg_str}")
+    # print(f"[MQTT >>] {msg_str}") # 减少日志刷屏
     client.publish(MQTT_CMD_TOPIC, msg_str, qos=1, retain=False)
 
 

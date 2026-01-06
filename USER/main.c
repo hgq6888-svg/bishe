@@ -27,9 +27,9 @@
 #define MQTT_PASS       ""
 
 #define DEV_ID          "A18" 
-#define SEAT_NAME_GBK   "\x41\xC7\xF8\x2D\x31\x38\xBA\xC5" // A区-18号
+#define SEAT_NAME_GBK   "\x41\xC7\xF8\x2D\x31\x38\xBA\xC5" 
 
-#define TOF_OCCUPIED_MM 380  // 38cm内判定为有人
+#define TOF_OCCUPIED_MM 380  
 
 #define PERIOD_RFID_MS   100
 #define PERIOD_TOF_MS    200
@@ -40,11 +40,18 @@
 #define PERIOD_NET_CHK   10000 
 #define PERIOD_TIME_SYNC 60000 
 
-/* 签退需要长按的时间 (毫秒) */
-#define CHECKOUT_HOLD_MS 3000 
-
 #define TASK_QUEUE_SIZE  10
 #define TASK_CMD_LEN     256
+
+/* 操作模式定义 */
+typedef enum {
+    OP_NORMAL = 0,
+    OP_WAIT_CHECKIN,  
+    OP_WAIT_CHECKOUT  
+} OpMode_t;
+
+static OpMode_t g_op_mode = OP_NORMAL;
+static uint32_t g_popup_ts = 0; 
 
 typedef struct {
     char cmds[TASK_QUEUE_SIZE][TASK_CMD_LEN];
@@ -52,6 +59,10 @@ typedef struct {
     volatile uint16_t tail;
 } TaskQueue_t;
 static TaskQueue_t g_task_queue = {0};
+
+/* 弹窗文本GBK */
+const u8 STR_POP_IN[]  = {0xC7,0xEB,0xCB,0xA2,0xBF,0xA8,0xC7,0xA9,0xB5,0xBD,0x00}; // 请刷卡签到
+const u8 STR_POP_OUT[] = {0xC7,0xEB,0xCB,0xA2,0xBF,0xA8,0xC7,0xA9,0xCD,0xCB,0x00}; // 请刷卡签退
 
 static int TaskQueue_Push(const char *cmd_str) {
     uint16_t next = (g_task_queue.head + 1) % TASK_QUEUE_SIZE;
@@ -78,14 +89,12 @@ static uint8_t  g_rfid_uid[10], g_rfid_has_card = 0;
 static char     g_card_hex[24];
 static u8       g_mqtt_ok = 0;
 static uint8_t  g_need_ui_refresh = 0; 
+static uint8_t  g_force_redraw = 0; 
 
 static uint8_t  g_time_h = 12, g_time_m = 0, g_time_s = 0; 
 static uint32_t g_time_tick_ms = 0;
-static char     g_time_str[10] = "12:00";
-
-static void Debug_Log(const char* str) {
-    printf("[STM32] %s\r\n", str);
-}
+static char     g_time_str[10] = "--:--"; 
+static uint8_t  g_ntp_retry_cnt = 0; 
 
 static void Topic_Make(char *out, u16 out_sz, const char *suffix) {
     snprintf(out, out_sz, "server/%s/%s", suffix, DEV_ID);
@@ -156,6 +165,26 @@ static void Task_Process_Commands(void) {
         printf("[Cmd] %s\r\n", kv); 
         
         if(!KV_Get(kv, "type", typ, sizeof(typ))) continue;
+        
+        /* 【新增】处理服务器下发的时间同步命令 */
+        /* 格式: type=time_sync&time=HH:MM:SS */
+        if(strcmp(typ, "time_sync") == 0) {
+            char t_buf[16];
+            if(KV_Get(kv, "time", t_buf, sizeof(t_buf))) {
+                // 解析 HH:MM:SS
+                if(strlen(t_buf) >= 8) {
+                    t_buf[2] = 0; t_buf[5] = 0;
+                    g_time_h = atoi(t_buf);
+                    g_time_m = atoi(t_buf+3);
+                    g_time_s = atoi(t_buf+6);
+                    sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
+                    printf("[Sync] Time updated from Server: %s\r\n", g_time_str);
+                    g_need_ui_refresh = 1; // 刷新UI
+                }
+            }
+            continue;
+        }
+
         if(KV_Get(kv, "seat_id", sid, sizeof(sid))) {
             if(strcmp(sid, DEV_ID) != 0) continue; 
         }
@@ -233,7 +262,10 @@ static void Network_Connect_Flow(void) {
         ui.esp_state = 0; return;
     }
     ui.esp_state = 2; g_mqtt_ok = 1;
+    
+    // 依然尝试开启 NTP 作为双重保险
     HGQ_ESP8266_EnableNTP();
+    
     MQTT_PubState(); 
 }
 
@@ -256,7 +288,20 @@ static void Local_Time_Tick(uint32_t ms) {
             g_time_s = 0; g_time_m++;
             if(g_time_m >= 60) { g_time_m = 0; g_time_h++; if(g_time_h >= 24) g_time_h = 0; }
         }
-        sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
+        
+        // 如果已经同步过(不是'-')，则正常走时更新
+        if(g_time_str[0] != '-') {
+            sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
+        }
+    }
+    
+    // 弹窗超时检查
+    if(g_op_mode != OP_NORMAL) {
+        if(g_popup_ts > 0) g_popup_ts--;
+        if(g_popup_ts == 0) {
+            g_op_mode = OP_NORMAL;
+            g_force_redraw = 1; // 恢复界面
+        }
     }
 }
 
@@ -275,6 +320,7 @@ static void Task_Receive_Network(void) {
                 if(p_start) {
                     TaskQueue_Push(p_start);
                 } else {
+                    // 兼容没有 seat_id 的广播命令 (如 time_sync)
                     char *last_comma = strrchr(line, ',');
                     if(last_comma && *(last_comma+1) != '\0') {
                         TaskQueue_Push(last_comma + 1);
@@ -289,26 +335,40 @@ static void APP_TouchProcess(void) {
     if(tp_dev.scan(0)) {
         u16 x = tp_dev.x[0], y = tp_dev.y[0];
         
-        // 权限控制：未签到禁止操作界面
-        if(strcmp(g_state, "IN_USE") != 0) {
-            printf("[Access] Touch ignored: Please Check-in first.\r\n");
+        if(g_op_mode != OP_NORMAL) {
+            g_op_mode = OP_NORMAL;
+            g_force_redraw = 1;
             return;
         }
 
         int changed = 0;
-        if(HGQ_UI_TouchBtn_Manual(x, y)) { ui.auto_mode = 0; changed=1; }
-        else if(HGQ_UI_TouchBtn_Auto(x, y)) { ui.auto_mode = 1; if(ui.light_on) ui.bri_target = Calc_Auto_Brightness(ui.lux); changed=1; }
-        else if(HGQ_UI_TouchBtn_On(x, y)) { ui.light_on = 1; changed=1; }
-        else if(HGQ_UI_TouchBtn_Off(x, y)) { ui.light_on = 0; changed=1; }
+        if(HGQ_UI_TouchBtn_Check(x, y)) {
+            if(strcmp(g_state, "IN_USE") == 0) {
+                g_op_mode = OP_WAIT_CHECKOUT;
+                g_popup_ts = 15 * 200; 
+                HGQ_UI_ShowPopup((char*)STR_POP_OUT);
+            } else {
+                g_op_mode = OP_WAIT_CHECKIN;
+                g_popup_ts = 15 * 200; 
+                HGQ_UI_ShowPopup((char*)STR_POP_IN);
+            }
+            return; 
+        }
         
-        if(ui.auto_mode == 0 && ui.light_on == 1) {
-            if(HGQ_UI_TouchBtn_BriUp(x, y)) { if(ui.bri_target <= 90) ui.bri_target += 10; else ui.bri_target = 100; }
-            else if(HGQ_UI_TouchBtn_BriDown(x, y)) { if(ui.bri_target >= 10) ui.bri_target -= 10; else ui.bri_target = 0; }
+        if(strcmp(g_state, "IN_USE") == 0) {
+            if(HGQ_UI_TouchBtn_Mode(x, y)) { ui.auto_mode = !ui.auto_mode; changed=1; }
+            else if(HGQ_UI_TouchBtn_On(x, y)) { ui.light_on = 1; changed=1; }
+            else if(HGQ_UI_TouchBtn_Off(x, y)) { ui.light_on = 0; changed=1; }
+            
+            if(ui.auto_mode == 0 && ui.light_on == 1) {
+                if(HGQ_UI_TouchBtn_BriUp(x, y)) { if(ui.bri_target <= 90) ui.bri_target += 10; else ui.bri_target = 100; }
+                else if(HGQ_UI_TouchBtn_BriDown(x, y)) { if(ui.bri_target >= 10) ui.bri_target -= 10; else ui.bri_target = 0; }
+            }
+        } else {
+             printf("[Access] Locked. Please check-in.\r\n");
         }
-        if(changed) {
-            MQTT_PubState();
-            // 继电器由主循环g_state控制
-        }
+
+        if(changed) MQTT_PubState();
     }
 }
 
@@ -327,64 +387,40 @@ static void Task_Sensors(void) {
     if(HGQ_VL53L0X_ReadMm(&g_tof, &mm) == 0) g_tof_mm = mm;
 }
 
-// ===================== 刷卡逻辑优化 (增强发送可靠性) =====================
-static uint32_t g_card_in_ts = 0;      // 记录卡片进入的时间戳
-static uint8_t  g_card_processed = 0;  // 标记当前刷卡动作是否已处理
-
 static void Task_RC522(uint32_t tick) {
     uint8_t uid_len, ret;
     ret = HGQ_RC522_PollUID(g_rfid_uid, &uid_len);
     
-    // 情况1：检测到卡片
     if(ret == 0) { 
-        UID_ToHexNoSpace(g_rfid_uid, uid_len, g_card_hex, sizeof(g_card_hex));
-        
-        // 1.1 刚放上去的瞬间 (Rising Edge)
         if(!g_rfid_has_card) {
             g_rfid_has_card = 1;
-            g_card_in_ts = tick;    // 记录开始时间
-            g_card_processed = 0;   // 重置处理标志
+            UID_ToHexNoSpace(g_rfid_uid, uid_len, g_card_hex, sizeof(g_card_hex));
             
-            // 【签到逻辑】: 如果当前状态不是使用中，立即签到
-            if(strcmp(g_state, "IN_USE") != 0) {
+            if(g_op_mode == OP_WAIT_CHECKIN) {
                 if(g_mqtt_ok) {
                     char ev[64]; sprintf(ev, "type=checkin&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
                     MQTT_PubEvent(ev);
-                    printf("[RFID] Check-In Sent (Immediate): %s\r\n", g_card_hex);
+                    printf("[RFID] Check-In Sent: %s\r\n", g_card_hex);
                 }
-                g_card_processed = 1; // 标记已处理
-            } else {
-                printf("[RFID] Card detected. Hold 3s to checkout...\r\n");
+                g_op_mode = OP_NORMAL;
+                g_force_redraw = 1; 
+            }
+            else if(g_op_mode == OP_WAIT_CHECKOUT) {
+                if(g_mqtt_ok) {
+                    char ev[64]; sprintf(ev, "type=checkout&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
+                    MQTT_PubEvent(ev);
+                    printf("[RFID] Check-Out Sent: %s\r\n", g_card_hex);
+                }
+                g_op_mode = OP_NORMAL;
+                g_force_redraw = 1; 
+            }
+            else {
+                printf("[RFID] Card detected but no action needed (Click button first).\r\n");
             }
         } 
-        // 1.2 卡片保持中 (Holding)
-        else {
-            // 如果还没处理过，且当前是使用中状态 -> 检测长按
-            if(!g_card_processed && strcmp(g_state, "IN_USE") == 0) {
-                // 检查是否超过设定时间 (3秒)
-                if(tick - g_card_in_ts >= CHECKOUT_HOLD_MS) {
-                    if(g_mqtt_ok) {
-                        char ev[64]; 
-                        sprintf(ev, "type=checkout&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
-                        
-                        printf("[RFID] Check-Out Triggered! Sending...\r\n");
-                        
-                        // 【关键修改】连续发送两次，确保不丢包
-                        MQTT_PubEvent(ev);
-                        delay_ms(100); 
-                        MQTT_PubEvent(ev);
-                        
-                        printf("[RFID] Check-Out Sent (Double-Send): %s\r\n", g_card_hex);
-                    }
-                    g_card_processed = 1; // 标记已处理
-                }
-            }
-        }
     } 
-    // 情况2：卡片移开
     else if(ret == 2) { 
         g_rfid_has_card = 0;
-        g_card_processed = 0;
     }
 }
 
@@ -420,25 +456,27 @@ int main(void) {
         delay_ms(5); tick += 5;
         Local_Time_Tick(5);
         
-        // 【关键】传递 tick 时间戳给 RFID 任务
         if(tick - t_rfid >= PERIOD_RFID_MS) { t_rfid = tick; Task_RC522(tick); }
         if(tick - t_sens >= PERIOD_AHT_MS)  { t_sens = tick; Task_Sensors(); }
         
         if(tick % PERIOD_TOUCH_MS == 0) APP_TouchProcess();
         
+        if(g_force_redraw) {
+            g_force_redraw = 0;
+            HGQ_UI_ResetCache(); 
+            HGQ_UI_DrawFramework(); 
+            g_need_ui_refresh = 1; 
+        }
+
         if(g_need_ui_refresh || tick - t_ui >= UI_REFRESH_MS) {
             g_need_ui_refresh = 0;
             t_ui = tick;
-            HGQ_UI_Update(&ui, g_time_str);
+            if(g_op_mode == OP_NORMAL) {
+                HGQ_UI_Update(&ui, g_time_str);
+            }
             LED0_SetOn(ui.light_on);
             LED0_SetBrightness((u8)HGQ_UI_GetBrightnessNow());
-            
-            // 继电器状态逻辑：IN_USE 时导通，其他情况断开
-            if(strcmp(g_state, "IN_USE") == 0) {
-                Relay_Set(1);
-            } else {
-                Relay_Set(0);
-            }
+            if(strcmp(g_state, "IN_USE") == 0) Relay_Set(1); else Relay_Set(0);
         }
         
         if(g_mqtt_ok && tick - t_pub >= 2000) {
@@ -451,12 +489,21 @@ int main(void) {
             Task_Network_Check();
         }
         
+        /* * 【策略更新】
+         * 主要依赖服务器下发时间 (在Task_Process_Commands中处理)。
+         * 这里只保留一个低频的NTP重试逻辑，作为备用。
+         */
         if(g_mqtt_ok && tick - t_sync >= PERIOD_TIME_SYNC) {
             t_sync = tick;
-            uint8_t h, m, s;
-            if(HGQ_ESP8266_GetNTPTime(&h, &m, &s)) {
-                g_time_h = h; g_time_m = m; g_time_s = s;
-                sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
+            
+            // 只有当时间从未同步过时，才频繁尝试NTP
+            if(g_time_str[0] == '-') {
+                 uint8_t h, m, s;
+                 if(HGQ_ESP8266_GetNTPTime(&h, &m, &s)) {
+                     g_time_h = h; g_time_m = m; g_time_s = s;
+                     sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
+                     printf("[NTP] Backup Sync Success: %s\r\n", g_time_str);
+                 }
             }
         }
     }
