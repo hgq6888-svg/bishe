@@ -11,29 +11,39 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
+
+# app.py 中的 api_state 修改版
 @app.route("/api/state")
 def api_state():
-    with database.db_lock:
-        mqtt_service.cleanup_expired_reservations()
-        conn = database.get_conn()
-        c = conn.cursor()
+    try:
+        with database.db_lock:
+            mqtt_service.cleanup_expired_reservations()
+            conn = database.get_conn()
+            c = conn.cursor()
 
-        c.execute("SELECT * FROM telemetry ORDER BY id DESC LIMIT 1")
-        latest = dict(c.fetchone()) if c.fetchone() else None
+            c.execute("SELECT * FROM telemetry ORDER BY id DESC LIMIT 1")
+            latest_row = c.fetchone()
+            latest = dict(latest_row) if latest_row else None
 
-        c.execute("SELECT * FROM seats ORDER BY seat_id")
-        seats = []
-        for s in c.fetchall():
-            s_obj = dict(s)
-            # 获取当前有效预约信息
-            c.execute("SELECT * FROM reservations WHERE seat_id=? AND status IN (?,?) ORDER BY id DESC LIMIT 1", 
-                      (s["seat_id"], config.RES_ACTIVE, config.RES_IN_USE))
-            res = c.fetchone()
-            s_obj["active_reservation"] = dict(res) if res else None
-            seats.append(s_obj)
-        
-        conn.close()
-        return jsonify({"ok": True, "latest": latest, "seats": seats})
+            c.execute("SELECT * FROM seats ORDER BY seat_id")
+            seats = []
+            for s in c.fetchall():
+                # 转为字典，并使用 .get() 防止缺少 light_on 字段导致报错
+                s_obj = dict(s)
+                s_obj["light_on"] = s_obj.get("light_on", 0)
+                s_obj["light_mode"] = s_obj.get("light_mode", "MANUAL")
+
+                c.execute("SELECT * FROM reservations WHERE seat_id=? AND status IN (?,?) ORDER BY id DESC LIMIT 1",
+                          (s["seat_id"], config.RES_ACTIVE, config.RES_IN_USE))
+                res = c.fetchone()
+                s_obj["active_reservation"] = dict(res) if res else None
+                seats.append(s_obj)
+
+            conn.close()
+            return jsonify({"ok": True, "latest": latest, "seats": seats})
+    except Exception as e:
+        print(f"[API Error] /api/state 报错: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route("/api/reserve", methods=["POST"])
 def api_reserve():
