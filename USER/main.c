@@ -29,8 +29,7 @@
 #define DEV_ID          "A18" 
 #define SEAT_NAME_GBK   "\x41\xC7\xF8\x2D\x31\x38\xBA\xC5" // A区-18号
 
-#define TOF_OCCUPIED_MM 380
-#define PUB_TELE_MS     1000
+#define TOF_OCCUPIED_MM 380  // 38cm内判定为有人
 
 #define PERIOD_RFID_MS   100
 #define PERIOD_TOF_MS    200
@@ -104,7 +103,6 @@ static u8 KV_Get(const char *kv, const char *key, char *out, u16 out_sz) {
             if(p[klen] == '=') {
                 const char *v = p + klen + 1;
                 u16 n = 0;
-                /* 解析直到遇到 & 或 引号 或 换行 */
                 while(v[n] != 0 && v[n] != '&' && v[n] != '\"' && v[n] != '\r' && v[n] != '\n') {
                     n++;
                 }
@@ -142,23 +140,18 @@ static void MQTT_PubState(void) {
              DEV_ID, g_state, g_expect_uid, ui.light_on, ui.auto_mode?"AUTO":"MANUAL");
     HGQ_ESP8266_MQTTPUB_Fast(topic, msg, 0);
 }
-static void MQTT_PubHeartbeat(void) {
-    char topic[64];
-    Topic_Make(topic, sizeof(topic), "heartbeat");
-    HGQ_ESP8266_MQTTPUB_Fast(topic, "ping=1", 0);
-}
 static void MQTT_PubEvent(const char *msg_kv) {
     char topic[64];
     Topic_Make(topic, sizeof(topic), "event");
     HGQ_ESP8266_MQTTPUB_Fast(topic, (char*)msg_kv, 0);
 }
 
-/* 指令处理 */
+/* ================== 业务逻辑处理 ================== */
 static void Task_Process_Commands(void) {
-    char kv[TASK_CMD_LEN], typ[20], uid[24], sid[20], user[32];
+    char kv[TASK_CMD_LEN], typ[20], uid[24], sid[20], user[32], reason[20];
     
     while(TaskQueue_Pop(kv)) {
-        printf("[Process] %s\r\n", kv); 
+        printf("[Cmd] %s\r\n", kv); 
         
         if(!KV_Get(kv, "type", typ, sizeof(typ))) continue;
         
@@ -166,6 +159,7 @@ static void Task_Process_Commands(void) {
             if(strcmp(sid, DEV_ID) != 0) continue; 
         }
         
+        // === 预约 ===
         if(strcmp(typ, "reserve") == 0) {
             if(KV_Get(kv, "user", user, sizeof(user))) strncpy(ui.user_str, user, sizeof(ui.user_str)-1);
             else strcpy(ui.user_str, "User");
@@ -174,14 +168,10 @@ static void Task_Process_Commands(void) {
             else g_expect_uid[0] = 0;
             
             char t_buf[32];
-            /* 提取时间: expires_at=2026-01-06 15:07:40 */
             if(KV_Get(kv, "expires_at", t_buf, sizeof(t_buf))) {
-                // 如果长度足够长，说明是完整日期
-                if(strlen(t_buf) >= 16) {
-                    // 提取 HH:MM (第11位开始)
+                if(strlen(t_buf) >= 16) { 
                     strncpy(ui.reserve_t, t_buf+11, 5); 
                     ui.reserve_t[5] = 0;
-                    // 在剩余时间栏显示 "To HH:MM"
                     sprintf(ui.remain_t, "To %s", ui.reserve_t);
                 } else {
                     strncpy(ui.reserve_t, t_buf, 5);
@@ -190,33 +180,43 @@ static void Task_Process_Commands(void) {
                 strcpy(ui.reserve_t, "--:--");
             }
             
-            // 刚预约，尚未签到，开始时间留空
             strcpy(ui.start_t, "--:--"); 
-
             strncpy(g_state, "RESERVED", sizeof(g_state)-1);
-            strncpy(ui.status, "Reserved", sizeof(ui.status)-1);
+            strncpy(ui.status, "Rsrv(15m)", sizeof(ui.status)-1); // 提示15分钟内签到
             
             MQTT_PubState();
             g_need_ui_refresh = 1;
         } 
+        // === 签到成功 (开灯 + 开继电器) ===
         else if(strcmp(typ, "checkin_ok") == 0) {
-            // 签到成功，记录当前时间为开始时间
             sprintf(ui.start_t, "%02d:%02d", g_time_h, g_time_m);
             strncpy(g_state, "IN_USE", sizeof(g_state)-1);
             strncpy(ui.status, "In Use", sizeof(ui.status)-1);
+            
+            // 核心逻辑：签到后开启电源
             ui.light_on = 1; 
+            
             MQTT_PubState();
             g_need_ui_refresh = 1;
         }
+        // === 释放/签退 (关灯 + 关继电器) ===
         else if(strcmp(typ, "release") == 0 || strcmp(typ, "checkout_ok") == 0) {
+            if(KV_Get(kv, "reason", reason, sizeof(reason))) {
+                printf("[INFO] Released reason: %s\r\n", reason);
+            }
+            
             g_expect_uid[0] = 0;
             strncpy(g_state, "FREE", sizeof(g_state)-1);
             strncpy(ui.status, "Free", sizeof(ui.status)-1);
+            
             strcpy(ui.user_str, "--");
             strcpy(ui.reserve_t, "--");
             strcpy(ui.start_t, "--");
             strcpy(ui.remain_t, "--");
+            
+            // 核心逻辑：签退后关闭电源
             ui.light_on = 0; 
+            
             MQTT_PubState(); 
             g_need_ui_refresh = 1;
         }
@@ -270,30 +270,21 @@ static void Local_Time_Tick(uint32_t ms) {
     }
 }
 
-/* 【关键修复】 接收逻辑 */
 static void Task_Receive_Network(void) {
     static char line[512]; 
     static u16 idx = 0; 
     uint8_t ch;
     
     while(HGQ_USART2_IT_GetChar(&ch)) {
-        USART_SendData(USART1, ch); /* 透传调试 */
-        
         if(idx < sizeof(line)-1) line[idx++] = ch;
-        
         if(ch == '\n') {
             line[idx] = 0; 
             idx = 0;
             if(strstr(line, "+MQTTSUBRECV")) {
-                /* 你的数据格式: ...,"stm32/cmd",81,seat_id=A18&type=reserve...
-                   如果用 strstr(line, "type=") 就会丢失前面的 seat_id
-                   所以这里改为查找 "seat_id=" 作为数据起点
-                */
                 char *p_start = strstr(line, "seat_id=");
                 if(p_start) {
                     TaskQueue_Push(p_start);
                 } else {
-                    // 备用方案: 找最后一个逗号
                     char *last_comma = strrchr(line, ',');
                     if(last_comma && *(last_comma+1) != '\0') {
                         TaskQueue_Push(last_comma + 1);
@@ -342,9 +333,9 @@ static void Task_RC522(void) {
         g_rfid_has_card = 1;
         UID_ToHexNoSpace(g_rfid_uid, uid_len, g_card_hex, sizeof(g_card_hex));
         if(g_mqtt_ok) {
-            // 发送签到请求
             char ev[64]; sprintf(ev, "type=checkin&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
             MQTT_PubEvent(ev);
+            printf("[RFID] Scanned: %s\r\n", g_card_hex);
         }
     } else if(ret == 2) g_rfid_has_card = 0;
 }
@@ -392,6 +383,9 @@ int main(void) {
             HGQ_UI_Update(&ui, g_time_str);
             LED0_SetOn(ui.light_on);
             LED0_SetBrightness((u8)HGQ_UI_GetBrightnessNow());
+            
+            // 【关键新增】同步继电器状态 (PF6)
+            Relay_Set(ui.light_on);
         }
         
         if(g_mqtt_ok && tick - t_pub >= 2000) {

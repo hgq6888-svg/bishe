@@ -37,15 +37,16 @@ void LED_Init(void)
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
 
-    /* PF10 仍然做普通输出（LED1） */
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10;
+    /* 【修改】PF6 做继电器控制 (原 PF10) */
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_6;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
     GPIO_Init(GPIOF, &GPIO_InitStructure);
 
-    GPIO_SetBits(GPIOF, GPIO_Pin_10); 
+    /* 默认输出高电平（假设继电器是低电平触发，则高电平=断开/关闭） */
+    GPIO_SetBits(GPIOF, GPIO_Pin_6); 
 
     /* PF7 的 PWM 初始化 */
     LED0_PWM_Init();
@@ -59,13 +60,13 @@ void LED0_PWM_Init(void)
     TIM_OCInitTypeDef       TIM_OCInitStructure;
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM11, ENABLE); // TIM11 在 APB2
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM11, ENABLE); 
 
     /* PF7 复用为 TIM11_CH1 */
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_7;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;        // 【关键】开漏输出
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;        
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;         
     GPIO_Init(GPIOF, &GPIO_InitStructure);
 
@@ -78,18 +79,16 @@ void LED0_PWM_Init(void)
     TIM_TimeBaseStructure.TIM_CounterMode   = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM11, &TIM_TimeBaseStructure);
 
-    /* PWM1 模式 + 低极性（低电平为有效=点亮） */
     TIM_OCInitStructure.TIM_OCMode      = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_Pulse       = 0;                 
-    TIM_OCInitStructure.TIM_OCPolarity  = TIM_OCPolarity_Low; // 低电平有效
+    TIM_OCInitStructure.TIM_OCPolarity  = TIM_OCPolarity_Low; 
     TIM_OC1Init(TIM11, &TIM_OCInitStructure);
 
     TIM_OC1PreloadConfig(TIM11, TIM_OCPreload_Enable);
     TIM_ARRPreloadConfig(TIM11, ENABLE);
     TIM_Cmd(TIM11, ENABLE);
 
-    /* 默认关灯 */
     s_led0_on  = 0;
     s_led0_bri = 0;
     LED0_UpdateCCR();
@@ -106,4 +105,14 @@ void LED0_SetBrightness(u8 percent)
     if (percent > 100) percent = 100;
     s_led0_bri = percent;
     LED0_UpdateCCR();
+}
+
+/* 【新增】继电器控制函数 */
+void Relay_Set(u8 on)
+{
+    if(on) {
+        GPIO_ResetBits(GPIOF, GPIO_Pin_6); // 低电平导通 (根据实际继电器模块修改)
+    } else {
+        GPIO_SetBits(GPIOF, GPIO_Pin_6);   // 高电平断开
+    }
 }

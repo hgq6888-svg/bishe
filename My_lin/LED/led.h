@@ -2,15 +2,19 @@
 #define __LED_H
 #include "sys.h"
 
-/* * LED0 = PF7 (TIM11_CH1, 接5V上拉, 低电平亮)
- * LED1 = PF10 (普通GPIO, 低电平亮)
+/* * LED0  = PF7 (TIM11_CH1 PWM, 调光台灯)
+ * RELAY = PF6 (继电器/插座电源, 假设低电平触发导通)
  */
-#define LED0 PFout(7) 
-#define LED1 PFout(10)
+
+#define LED0  PFout(7) 
+#define RELAY PFout(6)  // 将原来的 LED1(PF10) 改为 RELAY(PF6)
 
 void LED_Init(void);
 void LED0_PWM_Init(void);
 void LED0_SetOn(u8 on);
 void LED0_SetBrightness(u8 percent);
+
+/* 新增继电器控制函数 */
+void Relay_Set(u8 on);
 
 #endif

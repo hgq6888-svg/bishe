@@ -11,13 +11,11 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
-
-# app.py 中的 api_state 修改版
 @app.route("/api/state")
 def api_state():
     try:
         with database.db_lock:
-            mqtt_service.cleanup_expired_reservations()
+            # 优化：移除同步清理调用，改由 mqtt_service 后台线程处理
             conn = database.get_conn()
             c = conn.cursor()
 
@@ -53,7 +51,7 @@ def api_reserve():
     minutes = int(body.get("minutes", 120))
 
     with database.db_lock:
-        mqtt_service.cleanup_expired_reservations()
+        # 优化：移除同步清理调用
         conn = database.get_conn()
         c = conn.cursor()
 
@@ -71,15 +69,15 @@ def api_reserve():
         exp_str = (datetime.now() + timedelta(minutes=minutes)).strftime("%Y-%m-%d %H:%M:%S")
 
         c.execute("INSERT INTO reservations(seat_id,user,status,uid,reserved_at,expires_at) VALUES(?,?,?,?,?,?)",
-                  (seat_id, user, config.RES_ACTIVE, None, now_str, exp_str))
+                  (seat_id, user, config.RES_ACTIVE, uid, now_str, exp_str))
         rid = c.lastrowid
         c.execute("UPDATE seats SET state=?, updated_at=? WHERE seat_id=?", (config.SEAT_RESERVED, now_str, seat_id))
         conn.commit()
         conn.close()
 
-        # 发送MQTT指令
+        # 发送MQTT指令 (Payload中包含 expires_at 供设备显示)
         mqtt_service.publish_cmd({
-            "cmd": "reserve", "seat_id": seat_id, "reservation_id": rid, 
+            "cmd": "reserve", "seat_id": seat_id, "reservation_id": rid,
             "user": user, "uid": uid, "expires_at": exp_str
         })
         return jsonify({"ok": True})
@@ -131,6 +129,6 @@ def api_user_del():
 
 if __name__ == "__main__":
     database.init_db()
-    mqtt_service.start_mqtt()
+    mqtt_service.start_mqtt() # 确保这里启动了MQTT服务（含后台线程）
     print("Server running on http://0.0.0.0:5000")
     app.run(host="0.0.0.0", port=5000, debug=False)
