@@ -40,3 +40,4 @@
 ..\obj\hgq_esp8266.o: ..\SYSTEM\delay\delay.h
 ..\obj\hgq_esp8266.o: ..\SYSTEM\sys\sys.h
 ..\obj\hgq_esp8266.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\string.h
+..\obj\hgq_esp8266.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\stdlib.h

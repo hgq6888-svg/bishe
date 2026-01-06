@@ -25,10 +25,9 @@
 #define MQTT_PORT       1883
 #define MQTT_USER       "test01"
 #define MQTT_PASS       ""
-
 #define DEV_ID          "A15"
 
-/* 【修改】屏幕显示：A区-18号 (GBK编码) */
+/* 屏幕显示：A区-18号 */
 #define SEAT_NAME_GBK   "\x41\xC7\xF8\x2D\x31\x38\xBA\xC5" 
 
 #define TOF_OCCUPIED_MM 380
@@ -39,10 +38,12 @@
 #define PERIOD_TOF_MS    200
 #define PERIOD_AHT_MS    500
 #define PERIOD_LUX_MS    500
-#define PERIOD_TOUCH_MS  80   /* 按键防抖 */
+#define PERIOD_TOUCH_MS  80   
 #define UI_REFRESH_MS    100
+#define PERIOD_NET_CHK   10000 
+#define PERIOD_TIME_SYNC 60000 
 
-/* 任务队列 */
+/* 任务队列定义 */
 #define TASK_QUEUE_SIZE  10
 #define TASK_CMD_LEN     256
 typedef struct {
@@ -78,6 +79,11 @@ static uint8_t  g_rfid_uid[10], g_rfid_has_card = 0;
 static char     g_card_hex[24];
 static u8       g_mqtt_ok = 0;
 
+/* 时间管理变量 */
+static uint8_t  g_time_h = 12, g_time_m = 0, g_time_s = 0; 
+static uint32_t g_time_tick_ms = 0;
+static char     g_time_str[10] = "12:00";
+
 /* 工具函数 */
 static void Topic_Make(char *out, u16 out_sz, const char *suffix) {
     snprintf(out, out_sz, "server/%s/%s", suffix, DEV_ID);
@@ -104,24 +110,16 @@ static u8 KV_Get(const char *kv, const char *key, char *out, u16 out_sz) {
     }
     return 0;
 }
-
-/* 【关键】自动亮度算法：环境越暗，灯越亮 */
 static int Calc_Auto_Brightness(int lux) {
     int bri;
-    /* 限制输入：超过800lux认为很亮 */
     if(lux < 0) lux = 0;
     if(lux > 800) lux = 800;
-    
-    /* 线性反比映射：0lux->100%, 800lux->10% */
-    /* 800lux时不需要补光，0lux时需要全光 */
     bri = 100 - (lux * 90 / 800);
-    
-    if(bri < 10) bri = 10;   /* 最暗保留10% */
+    if(bri < 10) bri = 10;
     if(bri > 100) bri = 100;
     return bri;
 }
 
-/* MQTT 发布 */
 static void MQTT_PubTelemetry(void) {
     char topic[64], msg[196];
     Topic_Make(topic, sizeof(topic), "telemetry");
@@ -136,7 +134,6 @@ static void MQTT_PubState(void) {
              DEV_ID, g_state, g_expect_uid, ui.light_on, ui.auto_mode?"AUTO":"MANUAL");
     HGQ_ESP8266_MQTTPUB_Fast(topic, msg, 0);
 }
-/* 【修复】补回缺失的心跳函数定义 */
 static void MQTT_PubHeartbeat(void) {
     char topic[64];
     Topic_Make(topic, sizeof(topic), "heartbeat");
@@ -148,13 +145,61 @@ static void MQTT_PubEvent(const char *msg_kv) {
     HGQ_ESP8266_MQTTPUB_Fast(topic, (char*)msg_kv, 0);
 }
 
-/* 任务处理 */
+/* 连接流程 */
+static void Network_Connect_Flow(void) {
+    ui.esp_state = 1; 
+    g_mqtt_ok = 0;
+    HGQ_UI_Update(&ui, g_time_str);
+    
+    HGQ_USART2_SendString("AT+RST\r\n"); delay_ms(1500);
+    HGQ_ESP8266_SendCmd("ATE0\r\n","OK",500);
+    HGQ_ESP8266_SendCmd("AT+CWMODE=1\r\n","OK",500);
+
+    if(HGQ_ESP8266_JoinAP(WIFI_SSID, WIFI_PASS) != ESP8266_OK) {
+        ui.esp_state = 0; return;
+    }
+    if(HGQ_ESP8266_ConnectMQTT(MQTT_BROKER, MQTT_PORT, MQTT_USER, MQTT_PASS) != ESP8266_OK) {
+        ui.esp_state = 0; return;
+    }
+    if(HGQ_ESP8266_MQTTSUB("stm32/cmd", 0) != ESP8266_OK) {
+        ui.esp_state = 0; return;
+    }
+
+    ui.esp_state = 2; g_mqtt_ok = 1;
+    HGQ_ESP8266_EnableNTP();
+    MQTT_PubState(); MQTT_PubHeartbeat();
+}
+
+static void Task_Network_Check(void) {
+    if(g_mqtt_ok == 0) {
+        Network_Connect_Flow();
+    } else {
+        if(HGQ_ESP8266_CheckStatus() == 0) g_mqtt_ok = 0;
+    }
+}
+
+static void Local_Time_Tick(uint32_t ms) {
+    g_time_tick_ms += ms;
+    if(g_time_tick_ms >= 1000) {
+        g_time_tick_ms -= 1000;
+        g_time_s++;
+        if(g_time_s >= 60) {
+            g_time_s = 0; g_time_m++;
+            if(g_time_m >= 60) { g_time_m = 0; g_time_h++; if(g_time_h >= 24) g_time_h = 0; }
+        }
+        sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
+    }
+}
+
 static void Task_Process_Commands(void) {
     char kv[TASK_CMD_LEN], typ[20], uid[24];
     while(TaskQueue_Pop(kv)) {
         if(!KV_Get(kv, "type", typ, sizeof(typ))) continue;
         if(strcmp(typ, "reserve") == 0) {
-            if(KV_Get(kv, "uid", uid, sizeof(uid))) strncpy(g_expect_uid, uid, sizeof(g_expect_uid)-1);
+            if(KV_Get(kv, "uid", uid, sizeof(uid))) {
+                strncpy(g_expect_uid, uid, sizeof(g_expect_uid)-1);
+                /* 如果有需要，这里可以将uid更新到界面: strncpy(ui.user_str, uid, ...); */
+            }
             else g_expect_uid[0] = 0;
             strncpy(g_state, "RESERVED", sizeof(g_state)-1);
             strncpy(ui.status, "Reserved", sizeof(ui.status)-1);
@@ -163,6 +208,11 @@ static void Task_Process_Commands(void) {
             g_expect_uid[0] = 0;
             strncpy(g_state, "FREE", sizeof(g_state)-1);
             strncpy(ui.status, "Free", sizeof(ui.status)-1);
+            /* 清空界面信息 */
+            strcpy(ui.user_str, "--");
+            strcpy(ui.reserve_t, "--");
+            strcpy(ui.start_t, "--");
+            strcpy(ui.remain_t, "--");
             MQTT_PubState();
         }
     }
@@ -186,63 +236,41 @@ static void Task_Receive_Network(void) {
     }
 }
 
-/* 触摸处理 */
 static void APP_TouchProcess(void) {
     if(tp_dev.scan(0)) {
         u16 x = tp_dev.x[0], y = tp_dev.y[0];
-        
-        /* 底部功能区 */
         if(HGQ_UI_TouchBtn_Manual(x, y)) { ui.auto_mode = 0; MQTT_PubState(); }
         else if(HGQ_UI_TouchBtn_Auto(x, y)) { 
             ui.auto_mode = 1; 
-            /* 切换瞬间立即计算一次亮度，避免等待 */
             if(ui.light_on) ui.bri_target = Calc_Auto_Brightness(ui.lux);
             MQTT_PubState(); 
         }
         else if(HGQ_UI_TouchBtn_On(x, y)) { ui.light_on = 1; MQTT_PubState(); }
         else if(HGQ_UI_TouchBtn_Off(x, y)) { ui.light_on = 0; MQTT_PubState(); }
         
-        /* 亮度调节 (仅手动模式且开灯有效) */
         if(ui.auto_mode == 0 && ui.light_on == 1) {
-            /* 点击 [+] 增加10% */
             if(HGQ_UI_TouchBtn_BriUp(x, y)) {
-                if(ui.bri_target <= 90) ui.bri_target += 10;
-                else ui.bri_target = 100;
+                if(ui.bri_target <= 90) ui.bri_target += 10; else ui.bri_target = 100;
             }
-            /* 点击 [-] 减少10% */
             else if(HGQ_UI_TouchBtn_BriDown(x, y)) {
-                if(ui.bri_target >= 10) ui.bri_target -= 10;
-                else ui.bri_target = 0;
+                if(ui.bri_target >= 10) ui.bri_target -= 10; else ui.bri_target = 0;
             }
         }
     }
 }
 
-/* 传感器任务 */
 static void Task_Sensors(void) {
     float tc, rh;
     HGQ_AHT20_Read(&tc, &rh);
     ui.temp_x10 = (int)(tc * 10 + 0.5f);
     ui.humi = (int)(rh + 0.5f);
     
-    /* 尝试读取光照 */
-    if(g_bh1750_ok) { 
-        HGQ_BH1750_ReadLux(&g_lux); 
-        ui.lux = g_lux; 
-    } else {
-        /* 如果初始化失败，尝试重连 */
-        g_bh1750_ok = !HGQ_BH1750_Init(0x23);
-        if(!g_bh1750_ok) ui.lux = -1; // -1 代表错误
-    }
+    if(g_bh1750_ok) { HGQ_BH1750_ReadLux(&g_lux); ui.lux = g_lux; } 
+    else { g_bh1750_ok = !HGQ_BH1750_Init(0x23); if(!g_bh1750_ok) ui.lux = -1; }
     
-    /* 自动亮度逻辑 */
     if(ui.auto_mode == 1 && ui.light_on == 1) {
-        if(ui.lux >= 0) {
-            ui.bri_target = Calc_Auto_Brightness(ui.lux);
-        } else {
-            /* 传感器坏了，自动模式下保持50%并提示错误 */
-            ui.bri_target = 50; 
-        }
+        if(ui.lux >= 0) ui.bri_target = Calc_Auto_Brightness(ui.lux);
+        else ui.bri_target = 50; 
     }
     
     uint16_t mm; 
@@ -254,6 +282,8 @@ static void Task_RC522(void) {
     if(ret == 0 && !g_rfid_has_card) {
         g_rfid_has_card = 1;
         UID_ToHexNoSpace(g_rfid_uid, uid_len, g_card_hex, sizeof(g_card_hex));
+        /* 刷卡后，如果需要可以临时显示UID在用户栏，例如: */
+        // strncpy(ui.user_str, g_card_hex, sizeof(ui.user_str)-1);
         if(g_mqtt_ok) {
             char ev[64]; sprintf(ev, "type=checkin&uid=%s", g_card_hex);
             MQTT_PubEvent(ev);
@@ -268,32 +298,29 @@ int main(void) {
     W25QXX_Init(); font_init();
     
     HGQ_UI_Init(); 
-    /* 【修改】设置界面显示的座位号 */
+    /* 初始化默认UI显示内容 */
     strncpy(ui.area_seat, SEAT_NAME_GBK, sizeof(ui.area_seat)-1);
+    strcpy(ui.status, "Free");
+    strcpy(ui.user_str, "--");
+    strcpy(ui.reserve_t, "--");
+    strcpy(ui.start_t, "--");
+    strcpy(ui.remain_t, "--");
+    
     HGQ_UI_DrawFramework();
     
     HGQ_AHT20_Init(); g_bh1750_ok = !HGQ_BH1750_Init(0x23);
     HGQ_RC522_Init(); HGQ_VL53L0X_I2C_Init(); HGQ_VL53L0X_Begin(&g_tof, 0x29);
     
-    /* ESP初始化 */
-    ui.esp_state = 1;
-    HGQ_USART2_SendString("AT+RST\r\n"); delay_ms(1000);
-    HGQ_ESP8266_SendCmd("ATE0\r\n","OK",500);
-    HGQ_ESP8266_SendCmd("AT+CWMODE=1\r\n","OK",500);
-    if(HGQ_ESP8266_JoinAP(WIFI_SSID, WIFI_PASS)==0 && 
-       HGQ_ESP8266_ConnectMQTT(MQTT_BROKER, MQTT_PORT, MQTT_USER, MQTT_PASS)==0 &&
-       HGQ_ESP8266_MQTTSUB("stm32/cmd", 0)==0) {
-       ui.esp_state = 2; g_mqtt_ok = 1;
-       MQTT_PubState(); MQTT_PubHeartbeat();
-    } else ui.esp_state = 0;
+    Network_Connect_Flow();
 
-    uint32_t tick = 0, t_ui=0, t_sens=0, t_rfid=0, t_pub=0;
+    uint32_t tick = 0, t_ui=0, t_sens=0, t_rfid=0, t_pub=0, t_net=0, t_sync=0;
     
     while(1) {
         Task_Receive_Network();
         Task_Process_Commands();
         
         delay_ms(5); tick += 5;
+        Local_Time_Tick(5);
         
         if(tick - t_rfid >= PERIOD_RFID_MS) { t_rfid = tick; Task_RC522(); }
         if(tick - t_sens >= PERIOD_AHT_MS)  { t_sens = tick; Task_Sensors(); }
@@ -302,7 +329,7 @@ int main(void) {
         
         if(tick - t_ui >= UI_REFRESH_MS) {
             t_ui = tick;
-            HGQ_UI_Update(&ui, "", "");
+            HGQ_UI_Update(&ui, g_time_str);
             LED0_SetOn(ui.light_on);
             LED0_SetBrightness((u8)HGQ_UI_GetBrightnessNow());
         }
@@ -310,6 +337,20 @@ int main(void) {
         if(g_mqtt_ok && tick - t_pub >= PUB_TELE_MS) {
             t_pub = tick;
             MQTT_PubTelemetry();
+        }
+        
+        if(tick - t_net >= PERIOD_NET_CHK) {
+            t_net = tick;
+            Task_Network_Check();
+        }
+        
+        if(g_mqtt_ok && tick - t_sync >= PERIOD_TIME_SYNC) {
+            t_sync = tick;
+            uint8_t h, m, s;
+            if(HGQ_ESP8266_GetNTPTime(&h, &m, &s)) {
+                g_time_h = h; g_time_m = m; g_time_s = s;
+                sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
+            }
         }
     }
 }
