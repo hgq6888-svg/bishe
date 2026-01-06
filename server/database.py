@@ -4,21 +4,17 @@ import threading
 from datetime import datetime
 from config import DB_PATH, DEFAULT_SEATS, SEAT_FREE
 
-# 线程锁，防止多线程操作 SQLite 冲突
 db_lock = threading.Lock()
 
 def get_conn():
-    """获取数据库连接"""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 def now_str():
-    """获取当前时间字符串"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def init_db():
-    """初始化数据库表结构"""
     conn = get_conn()
     c = conn.cursor()
 
@@ -33,7 +29,6 @@ def init_db():
         updated_at TEXT NOT NULL
     )
     """)
-    # 尝试添加新列以兼容旧数据库
     try: c.execute("ALTER TABLE seats ADD COLUMN light_on INTEGER DEFAULT 0")
     except: pass
     try: c.execute("ALTER TABLE seats ADD COLUMN light_mode TEXT DEFAULT 'MANUAL'")
@@ -79,17 +74,21 @@ def init_db():
     )
     """)
 
-    # 5. 用户表
+    # 5. 用户表 (增加密码字段)
     c.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
+        password TEXT, 
         uid TEXT,
         created_at TEXT
     )
     """)
+    # 【新增】尝试添加 password 列兼容旧库
+    try: c.execute("ALTER TABLE users ADD COLUMN password TEXT DEFAULT '123456'")
+    except: pass
 
-    # 初始化默认座位数据
+    # 初始化默认座位
     for sid, disp in DEFAULT_SEATS:
         c.execute("SELECT seat_id FROM seats WHERE seat_id=?", (sid,))
         if not c.fetchone():
