@@ -351,11 +351,15 @@ static void APP_TouchProcess(void) {
                 g_op_mode = OP_WAIT_CHECKOUT;
                 g_popup_ts = 15 * 200; 
                 HGQ_UI_ShowPopup((char*)STR_POP_OUT);
-            } else {
+            } else if(strcmp(g_state, "RESERVED") == 0){ 
                 g_op_mode = OP_WAIT_CHECKIN;
                 g_popup_ts = 15 * 200; 
                 HGQ_UI_ShowPopup((char*)STR_POP_IN);
-            }
+            } else{
+								g_op_mode = OP_WAIT_CHECKIN;
+                g_popup_ts = 15 * 200; 
+                HGQ_UI_ShowPopup((char*)"预约后，才能签到！");
+						}
             return; 
         }
         
