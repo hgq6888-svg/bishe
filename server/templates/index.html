@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智能自习室管理系统</title>
+<style>
+:root {
+    --primary: #4361ee;
+    --sidebar-bg: #1e293b;
+    --sidebar-text: #f8fafc;
+    --bg: #f1f5f9;
+    --card-bg: #ffffff;
+    --text: #334155;
+}
+body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+/* === 侧边栏样式 === */
+.sidebar { width: 240px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); transition: width 0.3s; }
+.sidebar h2 { font-size: 20px; margin: 0 0 30px 0; color: #fff; display: flex; align-items: center; gap: 10px; }
+.nav-item { padding: 12px 15px; margin-bottom: 8px; cursor: pointer; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 12px; font-weight: 500; color: #94a3b8; }
+.nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.nav-item.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3); }
+
+/* === 主内容区 === */
+.main-content { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.header h1 { margin: 0; font-size: 24px; color: #1e293b; }
+.time-badge { background: #e2e8f0; padding: 6px 12px; border-radius: 20px; font-size: 14px; color: #475569; font-weight: 500; }
+
+/* === 视图切换 === */
+.view-section { display: none; animation: fadeIn 0.3s; }
+.view-section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* === 卡片与组件 === */
+.card { background: var(--card-bg); border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; border: 1px solid #e2e8f0; }
+.card h3 { margin: 0 0 20px 0; font-size: 18px; color: #334155; border-left: 4px solid var(--primary); padding-left: 12px; }
+
+/* KPI Grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.kpi-box { background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; transition: transform 0.2s; }
+.kpi-box:hover { transform: translateY(-5px); border-color: var(--primary); }
+.kpi-val { font-size: 32px; font-weight: 700; color: var(--primary); margin: 8px 0; }
+.kpi-label { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+
+/* Seat Grid */
+.seat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 16px; }
+.seat-item {
+    background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px 10px;
+    text-align: center; cursor: pointer; transition: all 0.2s; position: relative;
+}
+.seat-item:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+.seat-item.free { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+.seat-item.reserved { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
+.seat-item.inuse { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+.seat-item .icon { font-size: 28px; margin-bottom: 8px; display: block; }
+.seat-item .name { font-weight: bold; font-size: 15px; }
+.seat-item .status { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+.light-dot { width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; position: absolute; top: 10px; right: 10px; }
+.light-dot.on { background: #eab308; box-shadow: 0 0 8px #eab308; }
+
+/* Tables */
+table { width: 100%; border-collapse: separate; border-spacing: 0; }
+th { text-align: left; padding: 16px; background: #f8fafc; color: #475569; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
+td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+tr:last-child td { border-bottom: none; }
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.bg-free { background: #dcfce7; color: #166534; }
+.bg-res { background: #fef3c7; color: #92400e; }
+.bg-use { background: #dbeafe; color: #1e40af; }
+
+/* Forms */
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #64748b; }
+input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; transition: border 0.2s; box-sizing: border-box; }
+input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); }
+button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+button:hover { background: #304ffe; }
+button.del { background: #fee2e2; color: #ef4444; width: auto; padding: 6px 12px; font-size: 12px; }
+button.del:hover { background: #fecaca; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    body { flex-direction: column; overflow: auto; }
+    .sidebar { width: 100%; flex-direction: row; padding: 10px; overflow-x: auto; }
+    .nav-item { margin-bottom: 0; margin-right: 10px; white-space: nowrap; }
+    .main-content { overflow: visible; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>📚 自习室系统</h2>
+    <div class="nav-item active" onclick="switchView('dashboard')">
+        <span>📊</span> 总览大屏
+    </div>
+    <div class="nav-item" onclick="switchView('reserve')">
+        <span>📅</span> 预约中心
+    </div>
+    <div class="nav-item" onclick="switchView('admin')">
+        <span>⚙️</span> 后台管理
+    </div>
+</div>
+
+<div class="main-content">
+
+    <div class="header">
+        <h1 id="page-title">总览大屏</h1>
+        <div class="time-badge" id="clock">--:--:--</div>
+    </div>
+
+    <div id="view-dashboard" class="view-section active">
+        <div class="card">
+            <h3>🌡️ 实时环境监测</h3>
+            <div class="kpi-grid">
+                <div class="kpi-box">
+                    <div class="kpi-label">温度</div>
+                    <div class="kpi-val"><span id="temp">--</span><small style="font-size:16px">℃</small></div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-label">湿度</div>
+                    <div class="kpi-val"><span id="humi">--</span><small style="font-size:16px">%</small></div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-label">光照强度</div>
+                    <div class="kpi-val"><span id="lux">--</span><small style="font-size:16px">Lux</small></div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-label">数据来源</div>
+                    <div style="font-size: 18px; font-weight: bold; margin-top:12px; color:#475569" id="source_seat">--</div>
+                    <div style="font-size: 12px; color:#94a3b8; margin-top:4px" id="update_time">刚刚</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px">
+                <h3>🪑 座位实时状态</h3>
+                <div style="font-size:13px; display:flex; gap:15px; align-items:center;">
+                    <span style="display:flex;align-items:center"><div style="width:10px;height:10px;background:#22c55e;margin-right:6px;border-radius:2px"></div>空闲</span>
+                    <span style="display:flex;align-items:center"><div style="width:10px;height:10px;background:#f59e0b;margin-right:6px;border-radius:2px"></div>已预约</span>
+                    <span style="display:flex;align-items:center"><div style="width:10px;height:10px;background:#3b82f6;margin-right:6px;border-radius:2px"></div>使用中</span>
+                    <span style="display:flex;align-items:center"><div style="width:8px;height:8px;background:#eab308;border-radius:50%;margin-right:6px"></div>灯亮</span>
+                </div>
+            </div>
+            <div class="seat-grid" id="seatGrid"></div>
+        </div>
+    </div>
+
+    <div id="view-reserve" class="view-section">
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+            <h3>📅 提交新预约</h3>
+            <div class="form-group">
+                <label>选择座位</label>
+                <select id="seatSelect"><option>正在加载座位信息...</option></select>
+            </div>
+            <div class="form-group">
+                <label>预约人姓名</label>
+                <input id="userName" list="userList" placeholder="输入或选择姓名">
+                <datalist id="userList"></datalist>
+            </div>
+            <div class="form-group">
+                <label>使用时长 (分钟)</label>
+                <input type="number" id="minutes" value="120">
+            </div>
+            <button onclick="reserve()" id="btnReserve" style="margin-top:10px">立即预约</button>
+            <div id="resResult" style="margin-top:15px; text-align:center; font-size:14px;"></div>
+        </div>
+
+        <div class="card" style="max-width: 600px; margin: 20px auto;">
+            <h3>💡 预约说明</h3>
+            <ul style="font-size:14px; color:#64748b; line-height:1.6; padding-left:20px">
+                <li>预约成功后，请前往对应座位刷卡签到。</li>
+                <li>超过预约时间未签到，系统将自动释放座位。</li>
+                <li>如需取消预约，请前往“后台管理”页面操作。</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="view-admin" class="view-section">
+        <div style="display:flex; gap:20px; flex-wrap:wrap">
+            <div style="flex:2; min-width:300px">
+                <div class="card">
+                    <h3>📋 座位管理列表</h3>
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>座位</th>
+                                    <th>状态</th>
+                                    <th>灯光 / 模式</th>
+                                    <th>当前用户</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="seatTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div style="flex:1; min-width:300px">
+                <div class="card">
+                    <h3>👥 用户库管理</h3>
+                    <div class="form-group">
+                        <input id="newUName" placeholder="姓名">
+                    </div>
+                    <div class="form-group">
+                        <input id="newUUid" placeholder="卡号 (UID)">
+                    </div>
+                    <button onclick="addUser()">添加用户</button>
+
+                    <div style="margin-top:20px; max-height:400px; overflow-y:auto; border-top:1px solid #eee">
+                        <table style="margin-top:0">
+                            <tbody id="userTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// === 基础逻辑 ===
+setInterval(() => {
+    document.getElementById('clock').innerText = new Date().toLocaleString();
+}, 1000);
+
+// === 视图切换 ===
+function switchView(viewName) {
+    // 1. 更新菜单激活状态
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    // 2. 切换内容显示
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+    document.getElementById('view-' + viewName).classList.add('active');
+
+    // 3. 更新标题
+    const titles = {'dashboard': '总览大屏', 'reserve': '预约中心', 'admin': '后台管理'};
+    document.getElementById('page-title').innerText = titles[viewName];
+}
+
+// === 数据交互 ===
+async function fetchState(){
+    try {
+        const r = await fetch('/api/state');
+        const d = await r.json();
+        renderEnv(d.latest);
+        renderSeats(d.seats);
+    } catch(e) { console.error("Fetch error", e); }
+}
+
+function renderEnv(d) {
+    if(!d) return;
+    document.getElementById('temp').innerText = d.temp ?? '--';
+    document.getElementById('humi').innerText = d.humi ?? '--';
+    document.getElementById('lux').innerText  = d.lux ?? '--';
+    document.getElementById('source_seat').innerText = d.seat_id ?? '未连接';
+    document.getElementById('update_time').innerText = (d.created_at||'').split(' ')[1] || '--';
+}
+
+function renderSeats(seats) {
+    const grid = document.getElementById('seatGrid');
+    const sel = document.getElementById('seatSelect');
+    const tb = document.getElementById('seatTable');
+
+    // 保持当前选择状态
+    const curSel = sel.value;
+
+    grid.innerHTML = '';
+    sel.innerHTML = '<option value="">-- 请选择座位 --</option>';
+    tb.innerHTML = '';
+
+    seats.forEach(s => {
+        // 1. 生成 Grid 视图
+        const st = s.state;
+        const cls = st==='RESERVED'?'reserved':(st==='IN_USE'?'inuse':'free');
+        const icon = st==='RESERVED'?'📅':(st==='IN_USE'?'📚':'🪑');
+        const statusText = st==='RESERVED'?'已预约':(st==='IN_USE'?'使用中':'空闲');
+
+        const div = document.createElement('div');
+        div.className = `seat-item ${cls}`;
+        div.innerHTML = `
+            <div class="light-dot ${s.light_on?'on':''}"></div>
+            <span class="icon">${icon}</span>
+            <div class="name">${s.display}</div>
+            <div class="status">${statusText}</div>
+        `;
+        // 点击座位跳转到预约或提示
+        div.onclick = () => {
+            if(st === 'FREE') {
+                switchView('reserve'); // 自动跳转
+                // 需要延时一下等待DOM更新，或者直接设置值
+                setTimeout(() => document.getElementById('seatSelect').value = s.seat_id, 100);
+            } else {
+                alert(`[${s.display}] 当前由 ${s.active_reservation?.user||'未知'} 使用中`);
+            }
+        };
+        grid.appendChild(div);
+
+        // 2. 生成下拉菜单 (只加空闲)
+        if(st === 'FREE') {
+            const opt = document.createElement('option');
+            opt.value = s.seat_id;
+            opt.innerText = s.display;
+            sel.appendChild(opt);
+        }
+
+        // 3. 生成管理列表
+        const tr = document.createElement('tr');
+        const lightInfo = (s.light_on ? '💡开' : '⚫关') + ' / ' + (s.light_mode==='AUTO'?'自':'手');
+        let btn = '';
+        if(s.active_reservation) {
+            const type = s.active_reservation.status === 'ACTIVE' ? '取消预约' : '强制签退';
+            btn = `<button class="del" onclick="cancelRes(${s.active_reservation.id})">${type}</button>`;
+        }
+
+        const badgeCls = st==='FREE'?'bg-free':(st==='RESERVED'?'bg-res':'bg-use');
+
+        tr.innerHTML = `
+            <td>${s.display}</td>
+            <td><span class="badge ${badgeCls}">${statusText}</span></td>
+            <td><span style="font-size:12px;color:#64748b">${lightInfo}</span></td>
+            <td>${s.active_reservation?.user || '--'}</td>
+            <td>${btn}</td>
+        `;
+        tb.appendChild(tr);
+    });
+
+    if(curSel && document.querySelector(`#seatSelect option[value="${curSel}"]`)) {
+        sel.value = curSel;
+    }
+}
+
+// === 业务操作 ===
+async function reserve() {
+    const sid = document.getElementById('seatSelect').value;
+    const user = document.getElementById('userName').value.trim();
+    const btn = document.getElementById('btnReserve');
+
+    if(!sid || !user) return alert('请填写座位和姓名');
+
+    btn.disabled = true; btn.innerText = "提交中...";
+
+    try {
+        const r = await fetch('/api/reserve', {
+            method: 'POST',
+            body: JSON.stringify({
+                seat_id: sid,
+                user: user,
+                minutes: document.getElementById('minutes').value
+            })
+        });
+        const res = await r.json();
+        if(res.ok) {
+            alert('✅ 预约成功！');
+            document.getElementById('userName').value = '';
+            fetchState();
+            switchView('dashboard'); // 成功后跳回大屏
+        } else {
+            alert('❌ 失败: ' + res.error);
+        }
+    } catch(e) { alert('网络错误'); }
+
+    btn.disabled = false; btn.innerText = "立即预约";
+}
+
+async function cancelRes(id) {
+    if(confirm('⚠️ 确定要取消或结束此预约吗？')) {
+        await fetch('/api/cancel', {method:'POST', body:JSON.stringify({reservation_id:id})});
+        fetchState();
+    }
+}
+
+async function fetchUsers() {
+    const r = await fetch('/api/users');
+    const d = await r.json();
+    const tb = document.getElementById('userTable');
+    const dl = document.getElementById('userList');
+
+    tb.innerHTML = ''; dl.innerHTML = '';
+
+    d.users.forEach(u => {
+        // 表格行
+        tb.innerHTML += `
+            <tr>
+                <td>
+                    <div style="font-weight:600">${u.username}</div>
+                    <div style="font-size:12px;color:#94a3b8">${u.uid||'无卡号'}</div>
+                </td>
+                <td style="text-align:right">
+                    <button class="del" onclick="delUser(${u.id})">删除</button>
+                </td>
+            </tr>`;
+        // 搜索建议
+        dl.innerHTML += `<option value="${u.username}">`;
+    });
+}
+
+async function addUser() {
+    const name = document.getElementById('newUName').value;
+    if(!name) return alert('姓名必填');
+    await fetch('/api/users/add', {
+        method: 'POST',
+        body: JSON.stringify({
+            username: name,
+            uid: document.getElementById('newUUid').value
+        })
+    });
+    document.getElementById('newUName').value = '';
+    document.getElementById('newUUid').value = '';
+    fetchUsers();
+}
+
+async function delUser(id) {
+    if(confirm('确定删除该用户？')) {
+        await fetch('/api/users/delete', {method:'POST', body:JSON.stringify({id})});
+        fetchUsers();
+    }
+}
+
+// === 初始化 ===
+// 默认点击第一个菜单激活视图
+fetchState();
+fetchUsers();
+setInterval(fetchState, 2000);
+</script>
+</body>
+</html>
