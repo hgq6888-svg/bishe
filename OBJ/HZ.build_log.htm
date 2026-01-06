@@ -28,10 +28,13 @@ Project File Date:  01/05/2026
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'F:\keil5\Core\ARM\ARMCC\Bin'
 Build target 'HZ'
 compiling main.c...
+main.c(164): warning:  #177-D: variable "reason"  was declared but never referenced
+      char kv[TASK_CMD_LEN], cmd_val[20], uid[24], sid[20], user[32], reason[20];
+main.c: 1 warning, 0 errors
 linking...
-Program Size: Code=56864 RO-data=7392 RW-data=204 ZI-data=13044  
+Program Size: Code=56824 RO-data=7404 RW-data=204 ZI-data=10484  
 FromELF: creating hex file...
-"..\OBJ\HZ.axf" - 0 Error(s), 0 Warning(s).
+"..\OBJ\HZ.axf" - 0 Error(s), 1 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -44,7 +47,7 @@ Package Vendor: Keil
   F:/keil5/Pack/Keil/STM32F4xx_DFP/2.16.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:02
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>

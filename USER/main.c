@@ -40,7 +40,7 @@
 #define PERIOD_NET_CHK   10000 
 #define PERIOD_TIME_SYNC 60000 
 
-#define TASK_QUEUE_SIZE  20
+#define TASK_QUEUE_SIZE  10
 #define TASK_CMD_LEN     256
 
 /* 操作模式定义 */
@@ -61,9 +61,11 @@ typedef struct {
 static TaskQueue_t g_task_queue = {0};
 
 /* 弹窗文本GBK */
-const u8 STR_POP_IN[]  = {0xC7,0xEB,0xCB,0xA2,0xBF,0xA8,0xC7,0xA9,0xB5,0xBD,0x00}; // 请刷卡签到
-const u8 STR_POP_OUT[] = {0xC7,0xEB,0xCB,0xA2,0xBF,0xA8,0xC7,0xA9,0xCD,0xCB,0x00}; // 请刷卡签退
-const u8 STR_POP_ERR[] = {0xBF,0xA8,0xBA,0xC5,0xB4,0xED,0xCE,0xF3,0x00}; // 卡号错误
+const u8 STR_POP_IN[]   = {0xC7,0xEB,0xCB,0xA2,0xBF,0xA8,0xC7,0xA9,0xB5,0xBD,0x00}; // 请刷卡签到
+const u8 STR_POP_OUT[]  = {0xC7,0xEB,0xCB,0xA2,0xBF,0xA8,0xC7,0xA9,0xCD,0xCB,0x00}; // 请刷卡签退
+const u8 STR_POP_ERR[]  = {0xBF,0xA8,0xBA,0xC5,0xB4,0xED,0xCE,0xF3,0x00}; // 卡号错误
+// 【新增】提示语：请先点击屏幕 (GBK编码)
+const u8 STR_POP_WARN[] = {0xC7,0xEB,0xCF,0xC8,0xB5,0xE3,0xBB,0xF7,0xC6,0xC1,0xC4,0xBB,0x00}; 
 
 static int TaskQueue_Push(const char *cmd_str) {
     uint16_t next = (g_task_queue.head + 1) % TASK_QUEUE_SIZE;
@@ -158,17 +160,14 @@ static void MQTT_PubEvent(const char *msg_kv) {
     HGQ_ESP8266_MQTTPUB_Fast(topic, (char*)msg_kv, 0);
 }
 
-/* ================== 【核心修复】指令解析逻辑 ================== */
 static void Task_Process_Commands(void) {
     char kv[TASK_CMD_LEN], cmd_val[20], uid[24], sid[20], user[32], reason[20];
     
     while(TaskQueue_Pop(kv)) {
         printf("[Cmd] %s\r\n", kv); 
         
-        // 【关键修复】这里改为查找 "cmd" 而不是 "type"
         if(!KV_Get(kv, "cmd", cmd_val, sizeof(cmd_val))) continue;
         
-        /* 1. 时间同步指令 (无seat_id) */
         if(strcmp(cmd_val, "time_sync") == 0) {
             char t_buf[16];
             if(KV_Get(kv, "time", t_buf, sizeof(t_buf))) {
@@ -185,19 +184,16 @@ static void Task_Process_Commands(void) {
             continue;
         }
 
-        /* 2. 座位相关指令 (检查 seat_id) */
         if(KV_Get(kv, "seat_id", sid, sizeof(sid))) {
-            if(strcmp(sid, DEV_ID) != 0) continue; // 不是发给我的
+            if(strcmp(sid, DEV_ID) != 0) continue; 
         }
         
-        // === 拒绝 (卡号错误/无预约) ===
         if(strcmp(cmd_val, "deny") == 0) {
             printf("[INFO] Access Denied!\r\n");
             HGQ_UI_ShowPopup((char*)STR_POP_ERR);
-            g_popup_ts = 15 * 200; // 显示3秒
+            g_popup_ts = 15 * 200; 
             g_op_mode = OP_WAIT_CHECKIN; 
         }
-        // === 预约指令 ===
         else if(strcmp(cmd_val, "reserve") == 0) {
             if(KV_Get(kv, "user", user, sizeof(user))) strncpy(ui.user_str, user, sizeof(ui.user_str)-1);
             else strcpy(ui.user_str, "User");
@@ -206,7 +202,6 @@ static void Task_Process_Commands(void) {
             
             char t_buf[32];
             if(KV_Get(kv, "expires_at", t_buf, sizeof(t_buf))) {
-                // 提取时间部分 2024-01-01 12:00:00 -> 12:00
                 if(strlen(t_buf) >= 16) { 
                     strncpy(ui.reserve_t, t_buf+11, 5); 
                     ui.reserve_t[5] = 0;
@@ -215,14 +210,12 @@ static void Task_Process_Commands(void) {
                     strncpy(ui.reserve_t, t_buf, 5);
                 }
             }
-            
             strcpy(ui.start_t, "--:--"); 
             strncpy(g_state, "RESERVED", sizeof(g_state)-1);
             strncpy(ui.status, "Rsrv(15m)", sizeof(ui.status)-1);
             MQTT_PubState();
             g_need_ui_refresh = 1;
         } 
-        // === 签到成功 ===
         else if(strcmp(cmd_val, "checkin_ok") == 0) {
             sprintf(ui.start_t, "%02d:%02d", g_time_h, g_time_m);
             strncpy(g_state, "IN_USE", sizeof(g_state)-1);
@@ -231,11 +224,7 @@ static void Task_Process_Commands(void) {
             MQTT_PubState();
             g_need_ui_refresh = 1;
         }
-        // === 释放/签退 ===
         else if(strcmp(cmd_val, "release") == 0 || strcmp(cmd_val, "checkout_ok") == 0) {
-            if(KV_Get(kv, "reason", reason, sizeof(reason))) {
-                printf("[INFO] Released: %s\r\n", reason);
-            }
             g_expect_uid[0] = 0;
             strncpy(g_state, "FREE", sizeof(g_state)-1);
             strncpy(ui.status, "Free", sizeof(ui.status)-1);
@@ -269,7 +258,6 @@ static void Network_Connect_Flow(void) {
         ui.esp_state = 0; return;
     }
     ui.esp_state = 2; g_mqtt_ok = 1;
-    
     HGQ_ESP8266_EnableNTP();
     MQTT_PubState(); 
 }
@@ -307,7 +295,6 @@ static void Local_Time_Tick(uint32_t ms) {
     }
 }
 
-/* ================== 【核心修复】数据接收提取 ================== */
 static void Task_Receive_Network(void) {
     static char line[512]; 
     static u16 idx = 0; 
@@ -319,12 +306,10 @@ static void Task_Receive_Network(void) {
             line[idx] = 0; 
             idx = 0;
             if(strstr(line, "+MQTTSUBRECV")) {
-                // 【修复】改为查找 "cmd="，确保能截取到指令头
                 char *p_start = strstr(line, "cmd=");
                 if(p_start) {
                     TaskQueue_Push(p_start);
                 } else {
-                    // 兼容模式：如果没有cmd=，尝试获取逗号后的所有内容（兜底）
                     char *last_comma = strrchr(line, ',');
                     if(last_comma && *(last_comma+1) != '\0') {
                         TaskQueue_Push(last_comma + 1);
@@ -351,15 +336,11 @@ static void APP_TouchProcess(void) {
                 g_op_mode = OP_WAIT_CHECKOUT;
                 g_popup_ts = 15 * 200; 
                 HGQ_UI_ShowPopup((char*)STR_POP_OUT);
-            } else if(strcmp(g_state, "RESERVED") == 0){ 
+            } else {
                 g_op_mode = OP_WAIT_CHECKIN;
                 g_popup_ts = 15 * 200; 
                 HGQ_UI_ShowPopup((char*)STR_POP_IN);
-            } else{
-								g_op_mode = OP_WAIT_CHECKIN;
-                g_popup_ts = 15 * 200; 
-                HGQ_UI_ShowPopup((char*)"预约后，才能签到！");
-						}
+            }
             return; 
         }
         
@@ -393,6 +374,7 @@ static void Task_Sensors(void) {
     if(HGQ_VL53L0X_ReadMm(&g_tof, &mm) == 0) g_tof_mm = mm;
 }
 
+/* ================== 【修改】屏蔽直接刷卡 ================== */
 static void Task_RC522(uint32_t tick) {
     uint8_t uid_len, ret;
     ret = HGQ_RC522_PollUID(g_rfid_uid, &uid_len);
@@ -403,19 +385,28 @@ static void Task_RC522(uint32_t tick) {
             UID_ToHexNoSpace(g_rfid_uid, uid_len, g_card_hex, sizeof(g_card_hex));
             
             char ev[64];
+            int send = 0;
+            
             if(g_op_mode == OP_WAIT_CHECKIN) {
-                sprintf(ev, "type=checkin&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
+                sprintf(ev, "cmd=checkin&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
                 g_op_mode = OP_NORMAL; g_force_redraw = 1; 
+                send = 1;
             }
             else if(g_op_mode == OP_WAIT_CHECKOUT) {
-                sprintf(ev, "type=checkout&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
+                sprintf(ev, "cmd=checkout&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
                 g_op_mode = OP_NORMAL; g_force_redraw = 1; 
+                send = 1;
             }
             else {
-                sprintf(ev, "type=rfid&uid=%s&seat_id=%s", g_card_hex, DEV_ID);
+                // 【核心修复】未点击屏幕时刷卡，不发送数据，只弹窗提示
+                printf("[RFID] Ignored: Please click button first.\r\n");
+                //HGQ_UI_ShowPopup((char*)STR_POP_WARN); // 弹窗：请先点击屏幕
+								HGQ_UI_ShowPopup((char*)"点击签到/签退在刷卡！");
+                g_popup_ts = 15 * 200; // 显示3秒
+                send = 0;
             }
             
-            if(g_mqtt_ok) {
+            if(send && g_mqtt_ok) {
                 MQTT_PubEvent(ev);
                 printf("[RFID] Sent: %s\r\n", ev);
             }
