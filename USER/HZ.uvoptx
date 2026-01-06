@@ -162,18 +162,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>534</LineNumber>
+          <LineNumber>509</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134220450</Address>
+          <Address>134220952</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>c:\Users\HGQ\Desktop\姣曡\STM32姣曚笟璁捐 1.08\USER\main.c</Filename>
+          <Filename>C:\Users\HGQ\Desktop\姣曡\STM32姣曚笟璁捐 1.08\USER\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\HZ\main.c\534</Expression>
+          <Expression>\\HZ\main.c\509</Expression>
         </Bp>
       </Breakpoint>
       <Tracepoint>
@@ -762,7 +762,7 @@
       <GroupNumber>8</GroupNumber>
       <FileNumber>40</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\My_lin\HGQ_UI\hgq_ui.c</PathWithFileName>

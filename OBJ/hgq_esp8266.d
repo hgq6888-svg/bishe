@@ -37,6 +37,6 @@
 ..\obj\hgq_esp8266.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
 ..\obj\hgq_esp8266.o: ..\My_lin\HGQ_USART\hgq_usart.h
 ..\obj\hgq_esp8266.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\stdio.h
-..\obj\hgq_esp8266.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\string.h
 ..\obj\hgq_esp8266.o: ..\SYSTEM\delay\delay.h
 ..\obj\hgq_esp8266.o: ..\SYSTEM\sys\sys.h
+..\obj\hgq_esp8266.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\string.h

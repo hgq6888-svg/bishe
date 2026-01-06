@@ -36,5 +36,3 @@
 ..\obj\hgq_usart.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\hgq_usart.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
 ..\obj\hgq_usart.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\stdio.h
-..\obj\hgq_usart.o: ..\SYSTEM\delay\delay.h
-..\obj\hgq_usart.o: ..\SYSTEM\sys\sys.h

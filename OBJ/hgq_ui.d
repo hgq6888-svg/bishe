@@ -38,7 +38,7 @@
 ..\obj\hgq_ui.o: ..\HARDWARE\LCD\lcd.h
 ..\obj\hgq_ui.o: ..\SYSTEM\sys\sys.h
 ..\obj\hgq_ui.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\stdlib.h
-..\obj\hgq_ui.o: ..\SYSTEM\delay\delay.h
 ..\obj\hgq_ui.o: ..\TEXT\text.h
 ..\obj\hgq_ui.o: ..\TEXT\fontupd.h
 ..\obj\hgq_ui.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\string.h
+..\obj\hgq_ui.o: F:\keil5\Core\ARM\ARMCC\Bin\..\include\stdio.h
