@@ -26,7 +26,7 @@ body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0;
 .main-content { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .header h1 { margin: 0; font-size: 24px; color: #1e293b; }
-.time-badge { background: #e2e8f0; padding: 6px 12px; border-radius: 20px; font-size: 14px; color: #475569; font-weight: 500; }
+.user-info { font-size: 14px; color: #64748b; margin-right: 15px; }
 
 /* === 视图切换 === */
 .view-section { display: none; animation: fadeIn 0.3s; }
@@ -100,8 +100,15 @@ button.del:hover { background: #fecaca; }
     <div class="nav-item" onclick="switchView('reserve')">
         <span>📅</span> 预约中心
     </div>
+
+    {% if role == 'admin' %}
     <div class="nav-item" onclick="switchView('admin')">
         <span>⚙️</span> 后台管理
+    </div>
+    {% endif %}
+
+    <div class="nav-item" style="margin-top:auto" onclick="location.href='/logout'">
+        <span>🚪</span> 退出登录
     </div>
 </div>
 
@@ -109,7 +116,10 @@ button.del:hover { background: #fecaca; }
 
     <div class="header">
         <h1 id="page-title">总览大屏</h1>
-        <div class="time-badge" id="clock">--:--:--</div>
+        <div>
+            <span class="user-info">用户: {{ current_user }} ({{ '管理员' if role=='admin' else '普通用户' }})</span>
+            <span class="time-badge" id="clock">--:--:--</span>
+        </div>
     </div>
 
     <div id="view-dashboard" class="view-section active">
@@ -147,6 +157,12 @@ button.del:hover { background: #fecaca; }
                 </div>
             </div>
             <div class="seat-grid" id="seatGrid"></div>
+
+            {% if role != 'admin' %}
+            <div style="margin-top:20px; font-size:14px; color:#666">
+                提示：您可以点击【预约中心】进行选座。如果您已预约，您的座位卡片下方会显示“取消”按钮。
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -158,9 +174,8 @@ button.del:hover { background: #fecaca; }
                 <select id="seatSelect"><option>正在加载座位信息...</option></select>
             </div>
             <div class="form-group">
-                <label>预约人姓名</label>
-                <input id="userName" list="userList" placeholder="输入或选择姓名">
-                <datalist id="userList"></datalist>
+                <label>预约人</label>
+                <input id="userName" value="{{ current_user }}" disabled style="background:#f1f5f9; cursor:not-allowed">
             </div>
             <div class="form-group">
                 <label>使用时长 (分钟)</label>
@@ -169,17 +184,9 @@ button.del:hover { background: #fecaca; }
             <button onclick="reserve()" id="btnReserve" style="margin-top:10px">立即预约</button>
             <div id="resResult" style="margin-top:15px; text-align:center; font-size:14px;"></div>
         </div>
-
-        <div class="card" style="max-width: 600px; margin: 20px auto;">
-            <h3>💡 预约说明</h3>
-            <ul style="font-size:14px; color:#64748b; line-height:1.6; padding-left:20px">
-                <li>预约成功后，请前往对应座位刷卡签到。</li>
-                <li>超过预约时间未签到，系统将自动释放座位。</li>
-                <li>如需取消预约，请前往“后台管理”页面操作。</li>
-            </ul>
-        </div>
     </div>
 
+    {% if role == 'admin' %}
     <div id="view-admin" class="view-section">
         <div style="display:flex; gap:20px; flex-wrap:wrap">
             <div style="flex:2; min-width:300px">
@@ -222,10 +229,15 @@ button.del:hover { background: #fecaca; }
             </div>
         </div>
     </div>
+    {% endif %}
 
 </div>
 
 <script>
+// === 注入后端变量 ===
+const CURRENT_USER = "{{ current_user }}";
+const CURRENT_ROLE = "{{ role }}";
+
 // === 基础逻辑 ===
 setInterval(() => {
     document.getElementById('clock').innerText = new Date().toLocaleString();
@@ -233,15 +245,11 @@ setInterval(() => {
 
 // === 视图切换 ===
 function switchView(viewName) {
-    // 1. 更新菜单激活状态
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     event.currentTarget.classList.add('active');
-
-    // 2. 切换内容显示
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
     document.getElementById('view-' + viewName).classList.add('active');
 
-    // 3. 更新标题
     const titles = {'dashboard': '总览大屏', 'reserve': '预约中心', 'admin': '后台管理'};
     document.getElementById('page-title').innerText = titles[viewName];
 }
@@ -250,6 +258,7 @@ function switchView(viewName) {
 async function fetchState(){
     try {
         const r = await fetch('/api/state');
+        if(r.status === 401) location.reload(); // Session expired
         const d = await r.json();
         renderEnv(d.latest);
         renderSeats(d.seats);
@@ -270,12 +279,14 @@ function renderSeats(seats) {
     const sel = document.getElementById('seatSelect');
     const tb = document.getElementById('seatTable');
 
-    // 保持当前选择状态
     const curSel = sel.value;
 
     grid.innerHTML = '';
-    sel.innerHTML = '<option value="">-- 请选择座位 --</option>';
-    tb.innerHTML = '';
+    // 只有第一次或者列表为空时清空select，防止正在选择时被刷新
+    if(sel.options.length <= 1) sel.innerHTML = '<option value="">-- 请选择座位 --</option>';
+
+    // 如果是管理员界面，才需要渲染 seatTable
+    if(tb) tb.innerHTML = '';
 
     seats.forEach(s => {
         // 1. 生成 Grid 视图
@@ -284,6 +295,16 @@ function renderSeats(seats) {
         const icon = st==='RESERVED'?'📅':(st==='IN_USE'?'📚':'🪑');
         const statusText = st==='RESERVED'?'已预约':(st==='IN_USE'?'使用中':'空闲');
 
+        // 权限判断：是否显示操作按钮
+        // 管理员：永远显示
+        // 普通用户：只显示自己的预约
+        const isMyRes = s.active_reservation && s.active_reservation.user === CURRENT_USER;
+        let actionHtml = '';
+        if (s.active_reservation && (CURRENT_ROLE === 'admin' || isMyRes)) {
+             const btnText = s.active_reservation.status === 'ACTIVE' ? '取消' : '签退';
+             actionHtml = `<button class="del" style="margin-top:5px;width:100%" onclick="event.stopPropagation();cancelRes(${s.active_reservation.id})">${btnText}</button>`;
+        }
+
         const div = document.createElement('div');
         div.className = `seat-item ${cls}`;
         div.innerHTML = `
@@ -291,46 +312,51 @@ function renderSeats(seats) {
             <span class="icon">${icon}</span>
             <div class="name">${s.display}</div>
             <div class="status">${statusText}</div>
+            ${actionHtml}
         `;
-        // 点击座位跳转到预约或提示
+
         div.onclick = () => {
             if(st === 'FREE') {
-                switchView('reserve'); // 自动跳转
-                // 需要延时一下等待DOM更新，或者直接设置值
+                switchView('reserve');
                 setTimeout(() => document.getElementById('seatSelect').value = s.seat_id, 100);
-            } else {
-                alert(`[${s.display}] 当前由 ${s.active_reservation?.user||'未知'} 使用中`);
             }
         };
         grid.appendChild(div);
 
-        // 2. 生成下拉菜单 (只加空闲)
+        // 2. 生成下拉菜单 (空闲座位) - 避免重复添加
         if(st === 'FREE') {
-            const opt = document.createElement('option');
-            opt.value = s.seat_id;
-            opt.innerText = s.display;
-            sel.appendChild(opt);
+             if(!document.querySelector(`#seatSelect option[value="${s.seat_id}"]`)) {
+                 const opt = document.createElement('option');
+                 opt.value = s.seat_id;
+                 opt.innerText = s.display;
+                 sel.appendChild(opt);
+             }
+        } else {
+             // 如果不空闲但存在于列表中，移除
+             const exist = document.querySelector(`#seatSelect option[value="${s.seat_id}"]`);
+             if(exist) exist.remove();
         }
 
-        // 3. 生成管理列表
-        const tr = document.createElement('tr');
-        const lightInfo = (s.light_on ? '💡开' : '⚫关') + ' / ' + (s.light_mode==='AUTO'?'自':'手');
-        let btn = '';
-        if(s.active_reservation) {
-            const type = s.active_reservation.status === 'ACTIVE' ? '取消预约' : '强制签退';
-            btn = `<button class="del" onclick="cancelRes(${s.active_reservation.id})">${type}</button>`;
+        // 3. 生成管理列表 (仅管理员)
+        if(tb) {
+            const lightInfo = (s.light_on ? '💡开' : '⚫关') + ' / ' + (s.light_mode==='AUTO'?'自':'手');
+            let btn = '';
+            if(s.active_reservation) {
+                const type = s.active_reservation.status === 'ACTIVE' ? '取消预约' : '强制签退';
+                btn = `<button class="del" onclick="cancelRes(${s.active_reservation.id})">${type}</button>`;
+            }
+            const badgeCls = st==='FREE'?'bg-free':(st==='RESERVED'?'bg-res':'bg-use');
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${s.display}</td>
+                <td><span class="badge ${badgeCls}">${statusText}</span></td>
+                <td><span style="font-size:12px;color:#64748b">${lightInfo}</span></td>
+                <td>${s.active_reservation?.user || '--'}</td>
+                <td>${btn}</td>
+            `;
+            tb.appendChild(tr);
         }
-
-        const badgeCls = st==='FREE'?'bg-free':(st==='RESERVED'?'bg-res':'bg-use');
-
-        tr.innerHTML = `
-            <td>${s.display}</td>
-            <td><span class="badge ${badgeCls}">${statusText}</span></td>
-            <td><span style="font-size:12px;color:#64748b">${lightInfo}</span></td>
-            <td>${s.active_reservation?.user || '--'}</td>
-            <td>${btn}</td>
-        `;
-        tb.appendChild(tr);
     });
 
     if(curSel && document.querySelector(`#seatSelect option[value="${curSel}"]`)) {
@@ -341,10 +367,9 @@ function renderSeats(seats) {
 // === 业务操作 ===
 async function reserve() {
     const sid = document.getElementById('seatSelect').value;
-    const user = document.getElementById('userName').value.trim();
     const btn = document.getElementById('btnReserve');
 
-    if(!sid || !user) return alert('请填写座位和姓名');
+    if(!sid) return alert('请选择座位');
 
     btn.disabled = true; btn.innerText = "提交中...";
 
@@ -353,16 +378,15 @@ async function reserve() {
             method: 'POST',
             body: JSON.stringify({
                 seat_id: sid,
-                user: user,
+                // user 字段由后端 session 控制，前端不需要传，或者传了后端也会校验覆盖
                 minutes: document.getElementById('minutes').value
             })
         });
         const res = await r.json();
         if(res.ok) {
             alert('✅ 预约成功！');
-            document.getElementById('userName').value = '';
             fetchState();
-            switchView('dashboard'); // 成功后跳回大屏
+            switchView('dashboard');
         } else {
             alert('❌ 失败: ' + res.error);
         }
@@ -378,44 +402,48 @@ async function cancelRes(id) {
     }
 }
 
+// 仅管理员会调用
 async function fetchUsers() {
+    if(CURRENT_ROLE !== 'admin') return;
     const r = await fetch('/api/users');
+    if(r.status === 403) return; // 无权限
     const d = await r.json();
     const tb = document.getElementById('userTable');
-    const dl = document.getElementById('userList');
+    if(!tb) return;
 
-    tb.innerHTML = ''; dl.innerHTML = '';
-
+    tb.innerHTML = '';
     d.users.forEach(u => {
-        // 表格行
         tb.innerHTML += `
             <tr>
                 <td>
-                    <div style="font-weight:600">${u.username}</div>
+                    <div style="font-weight:600">${u.username} <span style="font-weight:normal;color:#999">(${u.role})</span></div>
                     <div style="font-size:12px;color:#94a3b8">${u.uid||'无卡号'}</div>
                 </td>
                 <td style="text-align:right">
                     <button class="del" onclick="delUser(${u.id})">删除</button>
                 </td>
             </tr>`;
-        // 搜索建议
-        dl.innerHTML += `<option value="${u.username}">`;
     });
 }
 
 async function addUser() {
     const name = document.getElementById('newUName').value;
     if(!name) return alert('姓名必填');
-    await fetch('/api/users/add', {
+    const r = await fetch('/api/users/add', {
         method: 'POST',
         body: JSON.stringify({
             username: name,
             uid: document.getElementById('newUUid').value
         })
     });
-    document.getElementById('newUName').value = '';
-    document.getElementById('newUUid').value = '';
-    fetchUsers();
+    const res = await r.json();
+    if(res.ok) {
+        document.getElementById('newUName').value = '';
+        document.getElementById('newUUid').value = '';
+        fetchUsers();
+    } else {
+        alert(res.error);
+    }
 }
 
 async function delUser(id) {
@@ -426,9 +454,8 @@ async function delUser(id) {
 }
 
 // === 初始化 ===
-// 默认点击第一个菜单激活视图
 fetchState();
-fetchUsers();
+if(CURRENT_ROLE === 'admin') fetchUsers();
 setInterval(fetchState, 2000);
 </script>
 </body>

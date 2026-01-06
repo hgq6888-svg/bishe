@@ -6,13 +6,16 @@ from config import DB_PATH, DEFAULT_SEATS, SEAT_FREE
 
 db_lock = threading.Lock()
 
+
 def get_conn():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def now_str():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 def init_db():
     conn = get_conn()
@@ -29,10 +32,14 @@ def init_db():
         updated_at TEXT NOT NULL
     )
     """)
-    try: c.execute("ALTER TABLE seats ADD COLUMN light_on INTEGER DEFAULT 0")
-    except: pass
-    try: c.execute("ALTER TABLE seats ADD COLUMN light_mode TEXT DEFAULT 'MANUAL'")
-    except: pass
+    try:
+        c.execute("ALTER TABLE seats ADD COLUMN light_on INTEGER DEFAULT 0")
+    except:
+        pass
+    try:
+        c.execute("ALTER TABLE seats ADD COLUMN light_mode TEXT DEFAULT 'MANUAL'")
+    except:
+        pass
 
     # 2. 环境数据表
     c.execute("""
@@ -74,19 +81,37 @@ def init_db():
     )
     """)
 
-    # 5. 用户表 (增加密码字段)
+    # 5. 用户表 (增加 role 字段区分权限)
     c.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         password TEXT, 
         uid TEXT,
+        role TEXT DEFAULT 'user',
         created_at TEXT
     )
     """)
-    # 【新增】尝试添加 password 列兼容旧库
-    try: c.execute("ALTER TABLE users ADD COLUMN password TEXT DEFAULT '123456'")
-    except: pass
+    # 尝试添加字段兼容旧库
+    try:
+        c.execute("ALTER TABLE users ADD COLUMN password TEXT DEFAULT '123456'")
+    except:
+        pass
+    try:
+        c.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
+    except:
+        pass
+
+    # --- 初始化默认数据 ---
+
+    # 确保 admin 账号存在且是管理员权限
+    c.execute("SELECT * FROM users WHERE username='admin'")
+    if not c.fetchone():
+        c.execute("INSERT INTO users(username, password, uid, role, created_at) VALUES(?,?,?,?,?)",
+                  ('admin', '123456', 'CARD_ADMIN', 'admin', now_str()))
+    else:
+        # 如果已存在，强制赋予admin权限(防止意外降权)
+        c.execute("UPDATE users SET role='admin' WHERE username='admin'")
 
     # 初始化默认座位
     for sid, disp in DEFAULT_SEATS:
