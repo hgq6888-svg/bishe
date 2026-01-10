@@ -19,8 +19,8 @@
 #include "hgq_usart.h"
 
 /* ================== 配置区域 ================== */
-#define WIFI_SSID       "9636"
-#define WIFI_PASS       "123456789abcc"
+#define WIFI_SSID       "hhh"
+#define WIFI_PASS       "13680544157"
 #define MQTT_BROKER     "1.14.163.35"
 #define MQTT_PORT       1883
 #define MQTT_USER       "test01"
@@ -47,7 +47,8 @@
 typedef enum {
     OP_NORMAL = 0,
     OP_WAIT_CHECKIN,  
-    OP_WAIT_CHECKOUT  
+    OP_WAIT_CHECKOUT,
+    OP_WARNING // 【新增】警告弹窗模式，用于暂停UI刷新
 } OpMode_t;
 
 static OpMode_t g_op_mode = OP_NORMAL;
@@ -320,43 +321,51 @@ static void Task_Receive_Network(void) {
     }
 }
 
+/* ================== 【修改】优化触摸处理 ================== */
 static void APP_TouchProcess(void) {
-    if(tp_dev.scan(0)) {
+    static u8 s_last_touch = 0; // 上一次触摸状态
+    u8 is_touched = tp_dev.scan(0); // 获取当前触摸状态
+
+    // 只有在检测到触摸且上次未触摸时（上升沿），才执行操作
+    // 这可以防止手指按住不放时，连续触发导致弹窗瞬间打开又关闭
+    if(is_touched && !s_last_touch) {
         u16 x = tp_dev.x[0], y = tp_dev.y[0];
         
+        // 如果当前有弹窗 (模式不是 NORMAL)，任何点击都关闭弹窗
         if(g_op_mode != OP_NORMAL) {
             g_op_mode = OP_NORMAL;
             g_force_redraw = 1;
-            return;
-        }
-
-        int changed = 0;
-        if(HGQ_UI_TouchBtn_Check(x, y)) {
-            if(strcmp(g_state, "IN_USE") == 0) {
-                g_op_mode = OP_WAIT_CHECKOUT;
-                g_popup_ts = 15 * 200; 
-                HGQ_UI_ShowPopup((char*)STR_POP_OUT);
+            // 此次操作仅用于关闭弹窗，不处理按钮逻辑
+        } else {
+            // 正常的按钮处理逻辑
+            int changed = 0;
+            if(HGQ_UI_TouchBtn_Check(x, y)) {
+                if(strcmp(g_state, "IN_USE") == 0) {
+                    g_op_mode = OP_WAIT_CHECKOUT;
+                    g_popup_ts = 15 * 200; 
+                    HGQ_UI_ShowPopup((char*)STR_POP_OUT);
+                } else {
+                    g_op_mode = OP_WAIT_CHECKIN;
+                    g_popup_ts = 15 * 200; 
+                    HGQ_UI_ShowPopup((char*)STR_POP_IN);
+                }
+                // 这里不需要return，因为外层有了else保护，逻辑更清晰
             } else {
-                g_op_mode = OP_WAIT_CHECKIN;
-                g_popup_ts = 15 * 200; 
-                HGQ_UI_ShowPopup((char*)STR_POP_IN);
-            }
-            return; 
-        }
-        
-        if(strcmp(g_state, "IN_USE") == 0) {
-            if(HGQ_UI_TouchBtn_Mode(x, y)) { ui.auto_mode = !ui.auto_mode; changed=1; }
-            else if(HGQ_UI_TouchBtn_On(x, y)) { ui.light_on = 1; changed=1; }
-            else if(HGQ_UI_TouchBtn_Off(x, y)) { ui.light_on = 0; changed=1; }
-            
-            if(ui.auto_mode == 0 && ui.light_on == 1) {
-                if(HGQ_UI_TouchBtn_BriUp(x, y)) { if(ui.bri_target <= 90) ui.bri_target += 10; else ui.bri_target = 100; }
-                else if(HGQ_UI_TouchBtn_BriDown(x, y)) { if(ui.bri_target >= 10) ui.bri_target -= 10; else ui.bri_target = 0; }
+                if(strcmp(g_state, "IN_USE") == 0) {
+                    if(HGQ_UI_TouchBtn_Mode(x, y)) { ui.auto_mode = !ui.auto_mode; changed=1; }
+                    else if(HGQ_UI_TouchBtn_On(x, y)) { ui.light_on = 1; changed=1; }
+                    else if(HGQ_UI_TouchBtn_Off(x, y)) { ui.light_on = 0; changed=1; }
+                    
+                    if(ui.auto_mode == 0 && ui.light_on == 1) {
+                        if(HGQ_UI_TouchBtn_BriUp(x, y)) { if(ui.bri_target <= 90) ui.bri_target += 10; else ui.bri_target = 100; }
+                        else if(HGQ_UI_TouchBtn_BriDown(x, y)) { if(ui.bri_target >= 10) ui.bri_target -= 10; else ui.bri_target = 0; }
+                    }
+                }
+                if(changed) MQTT_PubState();
             }
         }
-
-        if(changed) MQTT_PubState();
     }
+    s_last_touch = is_touched; // 更新触摸状态
 }
 
 static void Task_Sensors(void) {
@@ -374,7 +383,7 @@ static void Task_Sensors(void) {
     if(HGQ_VL53L0X_ReadMm(&g_tof, &mm) == 0) g_tof_mm = mm;
 }
 
-/* ================== 【修改】屏蔽直接刷卡 ================== */
+/* ================== 【修改】修复RFID逻辑 ================== */
 static void Task_RC522(uint32_t tick) {
     uint8_t uid_len, ret;
     ret = HGQ_RC522_PollUID(g_rfid_uid, &uid_len);
@@ -402,6 +411,9 @@ static void Task_RC522(uint32_t tick) {
                 printf("[RFID] Ignored: Please click button first.\r\n");
                 //HGQ_UI_ShowPopup((char*)STR_POP_WARN); // 弹窗：请先点击屏幕
 								HGQ_UI_ShowPopup((char*)"点击签到/签退在刷卡！");
+                
+                // 【关键修改】设置模式为 WARNING，防止主循环的 HGQ_UI_Update 刷新背景覆盖弹窗
+                g_op_mode = OP_WARNING; 
                 g_popup_ts = 15 * 200; // 显示3秒
                 send = 0;
             }
@@ -464,6 +476,8 @@ int main(void) {
         if(g_need_ui_refresh || tick - t_ui >= UI_REFRESH_MS) {
             g_need_ui_refresh = 0;
             t_ui = tick;
+            // 【关键点】如果模式不是 NORMAL (包括 WAIT_CHECKIN, WARNING)，则不刷新UI
+            // 这保护了弹窗不被数据覆盖
             if(g_op_mode == OP_NORMAL) {
                 HGQ_UI_Update(&ui, g_time_str);
             }
