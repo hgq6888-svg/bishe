@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h> // for atoi
 
-static char s_init_buf[256]; 
+// 修复：增加缓冲区大小，防止MQTT数据进来时冲掉AT指令回包
+static char s_init_buf[512]; 
 
 /* 内部简单接收 */
 static int Wait_Reply(const char *reply, uint32_t timeout_ms)

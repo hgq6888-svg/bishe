@@ -238,7 +238,10 @@ def api_reserve():
 
         # 4. 创建预约
         now = database.now_str()
-        exp = (datetime.now() + timedelta(minutes=minutes)).strftime("%Y-%m-%d %H:%M:%S")
+        utc_now = datetime.utcnow()  # 获取 UTC 标准时间
+        beijing_now = utc_now + timedelta(hours=8)  # 转换为北京时间
+        exp = beijing_now.strftime("%Y-%m-%d %H:%M:%S")
+       
 
         c.execute("INSERT INTO reservations(seat_id,user,status,uid,reserved_at,expires_at) VALUES(?,?,?,?,?,?)",
                   (seat_id, current_user, config.RES_ACTIVE, user_uid, now, exp))

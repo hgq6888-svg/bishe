@@ -194,6 +194,7 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_str) {
     POINT_COLOR = UI_C_TEXT; BACK_COLOR = UI_C_CARD;
 
     /* 顶部区域 */
+    /* 注意：这些代码会修改 BACK_COLOR 为 UI_C_TOP (深蓝)，必须在绘制完顶部后恢复颜色 */
     if(s_first_run) {
         POINT_COLOR = WHITE; BACK_COLOR = UI_C_TOP;
         Show_Str(lcddev.width-140, 7, 80, 16, (u8*)d->area_seat, 16, 0);
@@ -204,6 +205,9 @@ void HGQ_UI_Update(HGQ_UI_Data *d, const char *time_str) {
         LCD_ShowString(115, 7, 40, 16, 16, (u8*)time_str);
         strncpy(s_time_cache, time_str, sizeof(s_time_cache));
     }
+
+    /* === 关键修复：恢复颜色配置，防止下方温湿度显示背景变黑 === */
+    POINT_COLOR = UI_C_TEXT; BACK_COLOR = UI_C_CARD;
 
     /* 1. 环境数据更新 */
     if(s_first_run || d->temp_x10 != s_cache.temp_x10) {

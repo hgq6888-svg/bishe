@@ -170,12 +170,14 @@ static int Calc_Auto_Brightness(int lux) {
 }
 
 /* MQTT 发布封装 (需要在 xMutexESP 保护下调用) */
+/* 修复：改为使用阻塞式发布，确保指令不与 CheckStatus 冲突 */
 static void MQTT_PubTelemetry(void) {
     char topic[64], msg[196];
     Topic_Make(topic, sizeof(topic), "telemetry");
     snprintf(msg, sizeof(msg), "type=telemetry&seat_id=%s&temp=%d.%d&humi=%d&lux=%d&tof_mm=%d", 
              DEV_ID, ui.temp_x10/10, ui.temp_x10%10, ui.humi, ui.lux, g_tof_mm);
-    HGQ_ESP8266_MQTTPUB_Fast(topic, msg, 0);
+    // 使用带等待的函数，防止后续指令冲突
+    HGQ_ESP8266_MQTTPUB(topic, msg, 0); 
 }
 
 static void MQTT_PubState(void) {
@@ -183,13 +185,15 @@ static void MQTT_PubState(void) {
     Topic_Make(topic, sizeof(topic), "state");
     snprintf(msg, sizeof(msg), "type=state&seat_id=%s&state=%s&uid=%s&power=1&light=%d&light_mode=%s",
              DEV_ID, g_state, g_expect_uid, ui.light_on, ui.auto_mode?"AUTO":"MANUAL");
-    HGQ_ESP8266_MQTTPUB_Fast(topic, msg, 0);
+    // 使用带等待的函数
+    HGQ_ESP8266_MQTTPUB(topic, msg, 0);
 }
 
 static void MQTT_PubEvent(const char *msg_kv) {
     char topic[64];
     Topic_Make(topic, sizeof(topic), "event");
-    HGQ_ESP8266_MQTTPUB_Fast(topic, (char*)msg_kv, 0);
+    // 使用带等待的函数
+    HGQ_ESP8266_MQTTPUB(topic, (char*)msg_kv, 0);
 }
 
 /* ================== 任务函数声明 ================== */
@@ -314,7 +318,8 @@ void net_task(void *pvParameters) {
     
     TickType_t xLastWakeTime = xTaskGetTickCount();
     uint32_t cnt_pub = 0;
-    uint32_t cnt_net_chk = 0;
+    // 修复：初始计数错开，避免一开始就和cnt_pub同时触发
+    uint32_t cnt_net_chk = 50; 
     uint32_t cnt_sync = 0;
 
     static char line[512]; 
@@ -411,7 +416,7 @@ void net_task(void *pvParameters) {
             cnt_pub = 0;
             if(g_mqtt_ok) {
                 xSemaphoreTake(xMutexESP, portMAX_DELAY);
-                MQTT_PubTelemetry();
+                MQTT_PubTelemetry(); // 现在是阻塞的，更安全
                 xSemaphoreGive(xMutexESP);
             }
         }
@@ -420,8 +425,15 @@ void net_task(void *pvParameters) {
         if(++cnt_net_chk >= 200) {
             cnt_net_chk = 0;
             xSemaphoreTake(xMutexESP, portMAX_DELAY);
-            if(HGQ_ESP8266_CheckStatus() == 0) g_mqtt_ok = 0;
+            // 修复：增加重试机制，防止一次失败就断网
+            uint8_t status = HGQ_ESP8266_CheckStatus();
+            if(status == 0) {
+                delay_ms(200); // 稍等重试
+                status = HGQ_ESP8266_CheckStatus();
+            }
+            if(status == 0) g_mqtt_ok = 0;
             xSemaphoreGive(xMutexESP);
+            
             if(!g_mqtt_ok) Network_Connect_Flow();
         }
 
