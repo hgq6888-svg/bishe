@@ -93,5 +93,9 @@ void HGQ_USART1_Init(uint32_t bound) {
     // ... (保留你原来的 USART1 初始化代码) ...
     // 这里为了节省篇幅省略，调试串口不影响性能
 }
-void HGQ_USART1_SendString(char *str) {}
+void HGQ_USART1_SendString(char *str) 
+{
+	
+}
+	
 	

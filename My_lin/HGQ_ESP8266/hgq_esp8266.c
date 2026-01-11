@@ -147,7 +147,7 @@ uint8_t HGQ_ESP8266_GetNTPTime(uint8_t *h, uint8_t *m, uint8_t *s)
 /* 检查是否在线 (通过查询 AP 连接状态) */
 uint8_t HGQ_ESP8266_CheckStatus(void)
 {
-    if(HGQ_ESP8266_SendCmd("AT+CWJAP?\r\n", "+CWJAP:", 500) == ESP8266_OK) {
+    if(HGQ_ESP8266_SendCmd("AT+CWJAP?\r\n", "+CWJAP:", 3000) == ESP8266_OK) {
         return 1;
     }
     return 0;

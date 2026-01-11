@@ -39,6 +39,14 @@
 "..\obj\hgq_vl53l0x.o"
 "..\obj\hgq_ui.o"
 "..\obj\led.o"
+"..\obj\event_groups.o"
+"..\obj\list.o"
+"..\obj\queue.o"
+"..\obj\stream_buffer.o"
+"..\obj\tasks.o"
+"..\obj\timers.o"
+"..\obj\heap_4.o"
+"..\obj\port.o"
 --strict --scatter "..\OBJ\HZ.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
