@@ -170,13 +170,11 @@ static int Calc_Auto_Brightness(int lux) {
 }
 
 /* MQTT 发布封装 (需要在 xMutexESP 保护下调用) */
-/* 修复：改为使用阻塞式发布，确保指令不与 CheckStatus 冲突 */
 static void MQTT_PubTelemetry(void) {
     char topic[64], msg[196];
     Topic_Make(topic, sizeof(topic), "telemetry");
     snprintf(msg, sizeof(msg), "type=telemetry&seat_id=%s&temp=%d.%d&humi=%d&lux=%d&tof_mm=%d", 
              DEV_ID, ui.temp_x10/10, ui.temp_x10%10, ui.humi, ui.lux, g_tof_mm);
-    // 使用带等待的函数，防止后续指令冲突
     HGQ_ESP8266_MQTTPUB(topic, msg, 0); 
 }
 
@@ -185,14 +183,12 @@ static void MQTT_PubState(void) {
     Topic_Make(topic, sizeof(topic), "state");
     snprintf(msg, sizeof(msg), "type=state&seat_id=%s&state=%s&uid=%s&power=1&light=%d&light_mode=%s",
              DEV_ID, g_state, g_expect_uid, ui.light_on, ui.auto_mode?"AUTO":"MANUAL");
-    // 使用带等待的函数
     HGQ_ESP8266_MQTTPUB(topic, msg, 0);
 }
 
 static void MQTT_PubEvent(const char *msg_kv) {
     char topic[64];
     Topic_Make(topic, sizeof(topic), "event");
-    // 使用带等待的函数
     HGQ_ESP8266_MQTTPUB(topic, (char*)msg_kv, 0);
 }
 
@@ -211,28 +207,54 @@ int main(void) {
     uart_init(115200);      // 调试串口
     HGQ_USART2_Init(115200); // ESP8266串口
     
+    printf("\r\n========================================\r\n");
+    printf("[SYSTEM] 正在启动硬件自检程序...\r\n");
+
     LED_Init(); 
+    printf("[自检] LED指示灯初始化......OK\r\n");
+
     LCD_Init(); 
-    LCD_Display_Dir(1); 
-    tp_dev.init();
-    W25QXX_Init(); 
-    font_init();
+    printf("[自检] LCD屏幕底层初始化....OK\r\n");
     
-    printf("\r\n[SYSTEM] Start FreeRTOS...\r\n");
+    LCD_Display_Dir(1); 
+    printf("[自检] LCD屏幕方向设置......OK\r\n");
+
+    tp_dev.init();
+    printf("[自检] 电容触摸屏初始化.....OK\r\n");
+
+    W25QXX_Init(); 
+    printf("[自检] W25Q128 Flash初始化..OK\r\n");
+
+    font_init();
+    printf("[自检] 中文字库系统初始化...OK\r\n");
+    
+    printf("[SYSTEM] 正在启动 FreeRTOS 实时操作系统...\r\n");
+    printf("========================================\r\n\r\n");
     
     /* 2. 外设与UI初始化 */
     HGQ_UI_Init(); 
+    printf("[自检] UI图形界面初始化.....OK\r\n");
+
     strncpy(ui.area_seat, SEAT_NAME_GBK, sizeof(ui.area_seat)-1);
     strcpy(ui.status, "Free"); strcpy(ui.user_str, "--");
     strcpy(ui.reserve_t, "--"); strcpy(ui.start_t, "--"); strcpy(ui.remain_t, "--");
     
     HGQ_UI_DrawFramework(); // 先画一次框架
+    printf("[自检] 初始界面绘制.........OK\r\n");
     
     HGQ_AHT20_Init(); 
+    printf("[自检] AHT20温湿度传感器....OK\r\n");
+
     g_bh1750_ok = !HGQ_BH1750_Init(0x23);
+    if(g_bh1750_ok) printf("[自检] BH1750光照传感器.....OK\r\n");
+    else            printf("[自检] BH1750光照传感器.....异常!\r\n");
+
     HGQ_RC522_Init(); 
+    printf("[自检] RC522射频模块........OK\r\n");
+
     HGQ_VL53L0X_I2C_Init(); 
     HGQ_VL53L0X_Begin(&g_tof, 0x29);
+    printf("[自检] VL53L0X激光测距......OK\r\n");
     
     /* 3. 创建互斥量 */
     xMutexUI = xSemaphoreCreateMutex();
@@ -269,6 +291,8 @@ void start_task(void *pvParameters) {
 
 /* 网络连接辅助函数 */
 static void Network_Connect_Flow(void) {
+    printf("[网络] 开始执行联网流程...\r\n");
+
     xSemaphoreTake(xMutexUI, portMAX_DELAY);
     ui.esp_state = 1; 
     g_mqtt_ok = 0;
@@ -276,33 +300,53 @@ static void Network_Connect_Flow(void) {
     xSemaphoreGive(xMutexUI);
     
     xSemaphoreTake(xMutexESP, portMAX_DELAY);
+    
+    printf("[网络] 复位 ESP8266 模块 (等待3秒)...\r\n");
     HGQ_USART2_SendString("AT+RST\r\n"); 
-    vTaskDelay(2000); 
+    vTaskDelay(3000); // 增加复位延时
+    
+    printf("[网络] 配置 Station 模式...\r\n");
     HGQ_ESP8266_SendCmd("ATE0\r\n","OK",500);
     HGQ_ESP8266_SendCmd("AT+CWMODE=1\r\n","OK",500);
-
-    if(HGQ_ESP8266_JoinAP(WIFI_SSID, WIFI_PASS) != ESP8266_OK) {
-        xSemaphoreGive(xMutexESP);
-        xSemaphoreTake(xMutexUI, portMAX_DELAY);
-        ui.esp_state = 0; 
-        xSemaphoreGive(xMutexUI);
-        return;
-    }
-    if(HGQ_ESP8266_ConnectMQTT(MQTT_BROKER, MQTT_PORT, MQTT_USER, MQTT_PASS) != ESP8266_OK) {
-        xSemaphoreGive(xMutexESP);
-        xSemaphoreTake(xMutexUI, portMAX_DELAY);
-        ui.esp_state = 0; 
-        xSemaphoreGive(xMutexUI);
-        return;
-    }
-    if(HGQ_ESP8266_MQTTSUB("stm32/cmd", 0) != ESP8266_OK) {
-        xSemaphoreGive(xMutexESP);
-        xSemaphoreTake(xMutexUI, portMAX_DELAY);
-        ui.esp_state = 0; 
-        xSemaphoreGive(xMutexUI);
-        return;
-    }
     
+    printf("[网络] 清除旧连接状态...\r\n");
+    HGQ_ESP8266_SendCmd("AT+CWQAP\r\n", "OK", 500);
+    HGQ_ESP8266_SendCmd("AT+CIPMUX=0\r\n", "OK", 500);
+
+    printf("[网络] 正在连接 WiFi: %s ...\r\n", WIFI_SSID);
+    if(HGQ_ESP8266_JoinAP(WIFI_SSID, WIFI_PASS) != ESP8266_OK) {
+        printf("[网络] 错误: WiFi 连接超时或密码错误!\r\n");
+        xSemaphoreGive(xMutexESP);
+        xSemaphoreTake(xMutexUI, portMAX_DELAY);
+        ui.esp_state = 0; 
+        xSemaphoreGive(xMutexUI);
+        return;
+    }
+    printf("[网络] WiFi 连接成功!\r\n");
+
+    printf("[网络] 正在连接 MQTT 服务器: %s ...\r\n", MQTT_BROKER);
+    if(HGQ_ESP8266_ConnectMQTT(MQTT_BROKER, MQTT_PORT, MQTT_USER, MQTT_PASS) != ESP8266_OK) {
+        printf("[网络] 错误: MQTT 服务器连接失败!\r\n");
+        xSemaphoreGive(xMutexESP);
+        xSemaphoreTake(xMutexUI, portMAX_DELAY);
+        ui.esp_state = 0; 
+        xSemaphoreGive(xMutexUI);
+        return;
+    }
+    printf("[网络] MQTT 服务器连接成功!\r\n");
+
+    printf("[网络] 正在订阅控制指令主题...\r\n");
+    if(HGQ_ESP8266_MQTTSUB("stm32/cmd", 0) != ESP8266_OK) {
+        printf("[网络] 错误: 主题订阅失败!\r\n");
+        xSemaphoreGive(xMutexESP);
+        xSemaphoreTake(xMutexUI, portMAX_DELAY);
+        ui.esp_state = 0; 
+        xSemaphoreGive(xMutexUI);
+        return;
+    }
+    printf("[网络] 主题订阅成功.\r\n");
+    
+    printf("[网络] 启动 NTP 网络校时...\r\n");
     HGQ_ESP8266_EnableNTP();
     MQTT_PubState(); // 发布上线状态
     xSemaphoreGive(xMutexESP);
@@ -310,6 +354,8 @@ static void Network_Connect_Flow(void) {
     xSemaphoreTake(xMutexUI, portMAX_DELAY);
     ui.esp_state = 2; g_mqtt_ok = 1;
     xSemaphoreGive(xMutexUI);
+    
+    printf("[网络] 联网流程全部完成，系统在线.\r\n");
 }
 
 /* 网络任务 */
@@ -318,7 +364,6 @@ void net_task(void *pvParameters) {
     
     TickType_t xLastWakeTime = xTaskGetTickCount();
     uint32_t cnt_pub = 0;
-    // 修复：初始计数错开，避免一开始就和cnt_pub同时触发
     uint32_t cnt_net_chk = 50; 
     uint32_t cnt_sync = 0;
 
@@ -348,7 +393,7 @@ void net_task(void *pvParameters) {
         /* 2. 处理指令队列 */
         char kv[TASK_CMD_LEN];
         while(TaskQueue_Pop(kv)) {
-            printf("[Cmd] %s\r\n", kv);
+            printf("[指令] 收到数据: %s\r\n", kv);
             char cmd_val[20], uid_str[24], sid[20], user[32];
             
             if(!KV_Get(kv, "cmd", cmd_val, sizeof(cmd_val))) continue;
@@ -362,6 +407,7 @@ void net_task(void *pvParameters) {
                     g_time_h = atoi(t_buf); g_time_m = atoi(t_buf+3); g_time_s = atoi(t_buf+6);
                     sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
                     g_need_ui_refresh = 1;
+                    printf("[指令] 收到校时指令: %02d:%02d\r\n", g_time_h, g_time_m);
                 }
             }
             else if(KV_Get(kv, "seat_id", sid, sizeof(sid)) && strcmp(sid, DEV_ID) == 0) {
@@ -369,6 +415,7 @@ void net_task(void *pvParameters) {
                     HGQ_UI_ShowPopup((char*)STR_POP_ERR);
                     g_popup_ts = 3; // 显示3秒
                     g_op_mode = OP_WAIT_CHECKIN; 
+                    printf("[指令] 刷卡被服务器拒绝 (deny)\r\n");
                 }
                 else if(strcmp(cmd_val, "reserve") == 0) {
                     if(KV_Get(kv, "user", user, sizeof(user))) strncpy(ui.user_str, user, sizeof(ui.user_str)-1);
@@ -385,6 +432,7 @@ void net_task(void *pvParameters) {
                     MQTT_PubState();
                     xSemaphoreGive(xMutexESP);
                     g_need_ui_refresh = 1;
+                    printf("[指令] 座位已被预约: %s\r\n", user);
                 }
                 else if(strcmp(cmd_val, "checkin_ok") == 0) {
                     sprintf(ui.start_t, "%02d:%02d", g_time_h, g_time_m);
@@ -395,6 +443,7 @@ void net_task(void *pvParameters) {
                     MQTT_PubState();
                     xSemaphoreGive(xMutexESP);
                     g_need_ui_refresh = 1;
+                    printf("[指令] 签到成功，开始使用\r\n");
                 }
                 else if(strcmp(cmd_val, "release") == 0 || strcmp(cmd_val, "checkout_ok") == 0) {
                     g_expect_uid[0] = 0;
@@ -406,6 +455,7 @@ void net_task(void *pvParameters) {
                     MQTT_PubState();
                     xSemaphoreGive(xMutexESP);
                     g_need_ui_refresh = 1;
+                    printf("[指令] 座位已释放 (签退/取消)\r\n");
                 }
             }
             xSemaphoreGive(xMutexUI);
@@ -416,7 +466,7 @@ void net_task(void *pvParameters) {
             cnt_pub = 0;
             if(g_mqtt_ok) {
                 xSemaphoreTake(xMutexESP, portMAX_DELAY);
-                MQTT_PubTelemetry(); // 现在是阻塞的，更安全
+                MQTT_PubTelemetry(); 
                 xSemaphoreGive(xMutexESP);
             }
         }
@@ -425,16 +475,22 @@ void net_task(void *pvParameters) {
         if(++cnt_net_chk >= 200) {
             cnt_net_chk = 0;
             xSemaphoreTake(xMutexESP, portMAX_DELAY);
-            // 修复：增加重试机制，防止一次失败就断网
             uint8_t status = HGQ_ESP8266_CheckStatus();
             if(status == 0) {
+                printf("[网络] 状态检查失败，尝试重连...\r\n");
                 delay_ms(200); // 稍等重试
                 status = HGQ_ESP8266_CheckStatus();
             }
-            if(status == 0) g_mqtt_ok = 0;
+            if(status == 0) {
+                printf("[网络] 连接丢失!\r\n");
+                g_mqtt_ok = 0;
+            }
             xSemaphoreGive(xMutexESP);
             
-            if(!g_mqtt_ok) Network_Connect_Flow();
+            if(!g_mqtt_ok) {
+                printf("[网络] 触发重新连接流程...\r\n");
+                Network_Connect_Flow();
+            }
         }
 
         /* 5. NTP时间同步 (60s) */
@@ -444,6 +500,7 @@ void net_task(void *pvParameters) {
                 xSemaphoreTake(xMutexESP, portMAX_DELAY);
                 uint8_t h, m, s;
                 if(HGQ_ESP8266_GetNTPTime(&h, &m, &s)) {
+                    printf("[网络] NTP 时间同步成功: %02d:%02d:%02d\r\n", h, m, s);
                     xSemaphoreTake(xMutexUI, portMAX_DELAY);
                     g_time_h = h; g_time_m = m; g_time_s = s;
                     sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
@@ -599,7 +656,7 @@ void rfid_task(void *pvParameters) {
                     xSemaphoreTake(xMutexESP, portMAX_DELAY);
                     MQTT_PubEvent(ev);
                     xSemaphoreGive(xMutexESP);
-                    printf("[RFID] Sent: %s\r\n", ev);
+                    printf("[RFID] 刷卡上报: %s\r\n", ev);
                 }
             }
         } 

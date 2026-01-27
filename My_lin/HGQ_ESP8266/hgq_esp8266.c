@@ -71,7 +71,8 @@ ESP8266_Status HGQ_ESP8266_JoinAP(char *ssid, char *pwd)
 {
     char cmd[128];
     sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\"\r\n", ssid, pwd);
-    return HGQ_ESP8266_SendCmd(cmd, "OK", 8000); 
+    /* 修改：超时时间增加到 20000ms (20秒)，增加联网成功率 */
+    return HGQ_ESP8266_SendCmd(cmd, "OK", 20000); 
 }
 
 ESP8266_Status HGQ_ESP8266_ConnectMQTT(char *broker, int port, char *username, char *password)
