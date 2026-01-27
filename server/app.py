@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 import config
 import database
 import mqtt_service
+import math
 
 app = Flask(__name__)
 app.secret_key = "bishe_secret_key_123"
 
-# --- 登录与注册模板 ---
+# --- 登录与注册模板 (保持不变) ---
 LOGIN_HTML = """
 <!DOCTYPE html>
 <html>
@@ -169,6 +170,190 @@ def api_state():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route("/api/stats")
+def api_stats():
+    """
+    增强版报表统计接口 - 优化密度与容错
+    支持参数: ?days=1|7|30
+    """
+    if not session.get("user"): return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        days_param = int(request.args.get("days", 7))
+    except:
+        days_param = 7
+
+    conn = database.get_conn()
+    c = conn.cursor()
+
+    # 计算时间范围
+    start_date = (datetime.now() - timedelta(days=days_param)).strftime("%Y-%m-%d %H:%M:%S")
+
+    # --- 1. 环境趋势与预测 (带降采样优化) ---
+    raw_rows = c.execute("SELECT temp, humi, lux, created_at FROM telemetry WHERE created_at > ? ORDER BY id ASC",
+                         (start_date,)).fetchall()
+
+    # 降采样逻辑：无论数据多少，只保留约 60 个点
+    TARGET_POINTS = 60
+    sampled_rows = []
+
+    if len(raw_rows) > TARGET_POINTS:
+        # 分组取平均值
+        step = len(raw_rows) / TARGET_POINTS
+        for i in range(TARGET_POINTS):
+            start_idx = int(i * step)
+            end_idx = int((i + 1) * step)
+            chunk = raw_rows[start_idx:end_idx]
+            if not chunk: continue
+
+            # 计算平均温湿度
+            avg_t = sum(r["temp"] for r in chunk) / len(chunk)
+            avg_h = sum(r["humi"] for r in chunk) / len(chunk)
+            # 时间取中间那个点
+            mid_time = chunk[len(chunk) // 2]["created_at"]
+
+            sampled_rows.append({
+                "temp": round(avg_t, 1),
+                "humi": round(avg_h, 1),
+                "created_at": mid_time
+            })
+    else:
+        # 数据量少，直接转换
+        sampled_rows = [dict(r) for r in raw_rows]
+
+    timestamps = [r["created_at"][5:16] for r in sampled_rows]  # MM-DD HH:mm
+    temps = [r["temp"] for r in sampled_rows]
+    humis = [r["humi"] for r in sampled_rows]
+
+    # 简单线性预测 (基于最后5个点预测未来3个点)
+    pred_labels = []
+    future_t = []
+    future_h = []
+
+    if len(temps) >= 5:
+        try:
+            # 简单的线性回归 y = kx + b
+            last_n = temps[-5:]
+            x_bar = 2.0  # (0+1+2+3+4)/5
+            y_bar = sum(last_n) / 5
+            denominator = 10.0  # sum((i-x_bar)^2)
+
+            k = sum((i - x_bar) * (last_n[i] - y_bar) for i in range(5)) / denominator
+            b = y_bar - k * x_bar
+            future_t = [round(k * (5 + i) + b, 1) for i in range(3)]
+
+            # 湿度预测
+            last_n_h = humis[-5:]
+            y_bar_h = sum(last_n_h) / 5
+            k_h = sum((i - x_bar) * (last_n_h[i] - y_bar_h) for i in range(5)) / denominator
+            b_h = y_bar_h - k_h * x_bar
+            future_h = [round(k_h * (5 + i) + b_h, 1) for i in range(3)]
+
+            pred_labels = ["预测+1", "预测+2", "预测+3"]
+        except:
+            # 预测计算出错（如数据异常），保持为空
+            pass
+
+    env_data = {
+        "labels": timestamps,
+        "temp": temps,
+        "humi": humis,
+        "pred_labels": pred_labels,
+        "pred_temp": future_t,
+        "pred_humi": future_h
+    }
+
+    # --- 2. 预约量热力图 ---
+    heat_rows = c.execute(f"""
+        SELECT strftime('%H', reserved_at) as hour, COUNT(*) as cnt 
+        FROM reservations 
+        WHERE reserved_at > ? 
+        GROUP BY hour
+    """, (start_date,)).fetchall()
+    heatmap_data = {str(i).zfill(2): 0 for i in range(24)}
+    peak_hour = "-"
+    peak_val = 0
+    for r in heat_rows:
+        h = r["hour"]
+        c_val = r["cnt"]
+        heatmap_data[h] = c_val
+        if c_val > peak_val:
+            peak_val = c_val
+            peak_hour = h + ":00"
+
+    # --- 3. 座位热门度 ---
+    seat_rows = c.execute(f"""
+        SELECT s.seat_id, s.display, COUNT(r.id) as cnt 
+        FROM seats s
+        LEFT JOIN reservations r ON s.seat_id = r.seat_id AND r.reserved_at > ?
+        GROUP BY s.seat_id 
+        ORDER BY cnt DESC
+    """, (start_date,)).fetchall()
+    seat_map = {r["seat_id"]: r["cnt"] for r in seat_rows}
+    top_seat_name = seat_rows[0]["display"] if seat_rows and seat_rows[0]["cnt"] > 0 else "暂无"
+
+    # --- 4. 关联性分析 ---
+    corr_rows = c.execute(f"""
+        SELECT substr(created_at, 1, 10) as day, AVG(temp) as avg_t
+        FROM telemetry WHERE created_at > ?
+        GROUP BY day
+    """, (start_date,)).fetchall()
+
+    res_per_day = c.execute(f"""
+        SELECT substr(reserved_at, 1, 10) as day, COUNT(*) as cnt
+        FROM reservations WHERE reserved_at > ?
+        GROUP BY day
+    """, (start_date,)).fetchall()
+
+    res_dict = {r["day"]: r["cnt"] for r in res_per_day}
+    scatter_data = []
+    for r in corr_rows:
+        d = r["day"]
+        if d in res_dict:
+            scatter_data.append({"x": round(r["avg_t"], 1), "y": res_dict[d]})
+
+    # --- 5. 用户行为分析 & 设备状态 ---
+    avg_dur_row = c.execute(f"""
+        SELECT AVG((julianday(expires_at) - julianday(reserved_at)) * 24 * 60) as avg_min
+        FROM reservations WHERE reserved_at > ?
+    """, (start_date,)).fetchone()
+    avg_duration = round(avg_dur_row["avg_min"] or 0, 0)
+
+    top_user_row = c.execute(f"""
+        SELECT user, COUNT(*) as cnt FROM reservations WHERE reserved_at > ? 
+        GROUP BY user ORDER BY cnt DESC LIMIT 1
+    """, (start_date,)).fetchone()
+    top_user = f"{top_user_row['user']} ({top_user_row['cnt']}次)" if top_user_row else "-"
+
+    # 设备在线率
+    last_tele = c.execute("SELECT created_at FROM telemetry ORDER BY id DESC LIMIT 1").fetchone()
+    is_online = False
+    if last_tele:
+        try:
+            last_time = datetime.strptime(last_tele["created_at"], "%Y-%m-%d %H:%M:%S")
+            if (datetime.now() - last_time).total_seconds() < 300:
+                is_online = True
+        except:
+            pass
+
+    conn.close()
+
+    return jsonify({
+        "ok": True,
+        "env": env_data,
+        "heatmap": heatmap_data,
+        "seat_map": seat_map,
+        "scatter": scatter_data,
+        "stats": {
+            "avg_duration": avg_duration,
+            "peak_hour": peak_hour,
+            "top_user": top_user,
+            "top_seat": top_seat_name,
+            "device_online": is_online
+        }
+    })
+
+
 @app.route("/api/user/profile")
 def api_user_profile():
     u = session.get("user")
@@ -241,7 +426,6 @@ def api_reserve():
         utc_now = datetime.utcnow()  # 获取 UTC 标准时间
         beijing_now = utc_now + timedelta(hours=8)  # 转换为北京时间
         exp = beijing_now.strftime("%Y-%m-%d %H:%M:%S")
-       
 
         c.execute("INSERT INTO reservations(seat_id,user,status,uid,reserved_at,expires_at) VALUES(?,?,?,?,?,?)",
                   (seat_id, current_user, config.RES_ACTIVE, user_uid, now, exp))

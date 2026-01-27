@@ -4,38 +4,55 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>智能自习室管理系统</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root { --primary: #2563eb; --bg: #f3f4f6; --text: #1f2937; --sidebar: #1e293b; }
 body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
 /* 侧边栏 */
 .sidebar { width: 220px; background: var(--sidebar); color: white; display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; }
 .sidebar h2 { font-size: 1.2rem; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
 .nav-item { padding: 12px; margin-bottom: 5px; cursor: pointer; border-radius: 8px; color: #94a3b8; transition: 0.2s; display: flex; gap: 10px; align-items: center; }
 .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
 .nav-item span { font-size: 1.2rem; }
+
 /* 主内容 */
 .main { flex: 1; padding: 30px; overflow-y: auto; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
 .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
 .card h3 { margin-top: 0; border-left: 4px solid var(--primary); padding-left: 10px; font-size: 1.1rem; }
+
 /* 仪表盘 */
 .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
 .kpi-box { background: #f8fafc; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
 .kpi-val { font-size: 1.5rem; font-weight: bold; color: var(--primary); margin: 5px 0; }
+
 /* 座位 */
 .seat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
 .seat-item { border: 2px solid #e2e8f0; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; position: relative; background: white; transition: 0.2s; }
 .seat-item:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+/* 基础状态色 */
 .seat-item.free { border-color: #10b981; background: #ecfdf5; color: #047857; }
 .seat-item.reserved { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
 .seat-item.inuse { border-color: #3b82f6; background: #eff6ff; color: #1e40af; }
+
+/* 报表页面专有样式 */
+.stats-toolbar { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
+.chart-container { position: relative; height: 300px; width: 100%; }
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.heat-map-legend { display: flex; gap:10px; font-size: 0.8rem; justify-content: flex-end; margin-bottom: 10px; }
+.heat-box { width: 15px; height: 15px; display: inline-block; vertical-align: middle; border-radius: 3px; }
+
 /* 表单与按钮 */
 input, select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
 button { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; }
+button.secondary { background: #64748b; }
 button.del { background: #ef4444; width: auto; padding: 5px 10px; font-size: 0.8rem; }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
 th { background: #f8fafc; font-weight: 600; color: #64748b; }
+
 /* 视图切换 */
 .view-section { display: none; }
 .view-section.active { display: block; animation: fadeIn 0.3s; }
@@ -47,6 +64,7 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
 <div class="sidebar">
     <h2>📚 智慧自习室</h2>
     <div class="nav-item active" onclick="switchView('dashboard')"><span>📊</span> 总览大屏</div>
+    <div class="nav-item" onclick="switchView('stats')"><span>📈</span> 数据报表</div>
     <div class="nav-item" onclick="switchView('reserve')"><span>📅</span> 预约中心</div>
     <div class="nav-item" onclick="switchView('profile')"><span>👤</span> 个人中心</div>
     {% if role == 'admin' %}
@@ -72,8 +90,78 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
             </div>
         </div>
         <div class="card">
-            <h3>座位状态</h3>
+            <h3>座位实时状态</h3>
             <div class="seat-grid" id="seat-grid"></div>
+        </div>
+    </div>
+
+    <div id="view-stats" class="view-section">
+        <div class="stats-toolbar">
+            <label>时间范围：</label>
+            <select id="stats-days" onchange="loadStats()" style="width:auto;margin:0">
+                <option value="1">近 1 天 (24h)</option>
+                <option value="7" selected>近 7 天</option>
+                <option value="30">近 30 天</option>
+            </select>
+            <div style="flex:1"></div>
+            <button class="secondary" onclick="exportReportPDF()" style="width:auto">📄 导出 PDF 报表</button>
+        </div>
+
+        <div id="report-content">
+            <div class="card">
+                <h3>统计概览</h3>
+                <div class="kpi-grid">
+                    <div class="kpi-box">
+                        <div style="font-size:0.9rem;color:#666">平均使用时长</div>
+                        <div class="kpi-val" id="st-avg-dur">--</div>
+                        <div style="font-size:0.8rem">分钟/次</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div style="font-size:0.9rem;color:#666">高峰时段</div>
+                        <div class="kpi-val" id="st-peak">--</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div style="font-size:0.9rem;color:#666">热门座位</div>
+                        <div class="kpi-val" id="st-top-seat">--</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div style="font-size:0.9rem;color:#666">设备状态</div>
+                        <div class="kpi-val" id="st-device">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>环境趋势与预测 (双Y轴 + 趋势线)</h3>
+                <div class="chart-container">
+                    <canvas id="chart-env"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="card">
+                    <h3>时段分布 (热力统计)</h3>
+                    <div class="chart-container" style="height:250px">
+                        <canvas id="chart-heat"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>环境-预约关联 (温度 vs 预约量)</h3>
+                    <div class="chart-container" style="height:250px">
+                        <canvas id="chart-scatter"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>座位热门度地图</h3>
+                <div class="heat-map-legend">
+                    <span><span class="heat-box" style="background:#e0f2fe"></span> 冷门</span>
+                    <span><span class="heat-box" style="background:#3b82f6"></span> 热门</span>
+                    <span><span class="heat-box" style="background:#1e40af"></span> 爆满</span>
+                </div>
+                <div class="seat-grid" id="stats-seat-map"></div>
+            </div>
         </div>
     </div>
 
@@ -124,6 +212,8 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
 <script>
 const CUR_USER = "{{ current_user }}";
 const CUR_ROLE = "{{ role }}";
+let chartInsts = {}; // 保存图表实例
+let currentSeatMap = {}; // 保存座位热度数据
 
 function switchView(id) {
     document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
@@ -132,15 +222,17 @@ function switchView(id) {
     event.currentTarget.classList.add('active');
     document.getElementById('page-title').innerText = event.currentTarget.innerText.trim().substring(2);
     if(id === 'profile') loadProfile();
+    if(id === 'stats') loadStats();
 }
 
+// --- 数据加载逻辑 ---
 async function loadState() {
     try {
         const r = await fetch('/api/state');
         if(r.status === 401) return location.reload();
         const d = await r.json();
 
-        // 环境
+        // 首页-环境
         if(d.latest) {
             document.getElementById('val-temp').innerText = d.latest.temp || '--';
             document.getElementById('val-humi').innerText = d.latest.humi || '--';
@@ -148,37 +240,30 @@ async function loadState() {
             document.getElementById('val-time').innerText = (d.latest.created_at||'').split(' ')[1] || '--';
         }
 
-        // 座位
+        // 首页-座位
         const grid = document.getElementById('seat-grid');
         const sel = document.getElementById('res-seat');
         grid.innerHTML = '';
         if(sel.options.length <= 1) sel.innerHTML = '<option value="">-- 请选择 --</option>';
 
         d.seats.forEach(s => {
-            // 生成卡片
             const st = s.state;
             const cls = st === 'RESERVED' ? 'reserved' : (st === 'IN_USE' ? 'inuse' : 'free');
             const txt = st === 'RESERVED' ? '已预约' : (st === 'IN_USE' ? '使用中' : '空闲');
-
-            // 操作按钮
             let btnHtml = '';
             const isMine = s.active_reservation?.user === CUR_USER;
             if(s.active_reservation && (CUR_ROLE === 'admin' || isMine)) {
                 const action = s.active_reservation.status === 'ACTIVE' ? '取消预约' : '强制签退';
                 btnHtml = `<button class="del" style="width:100%;margin-top:5px" onclick="event.stopPropagation();doCancel(${s.active_reservation.id})">${action}</button>`;
             }
-
             const div = document.createElement('div');
             div.className = `seat-item ${cls}`;
             div.innerHTML = `<div style="font-weight:bold;font-size:1.2rem">${s.display}</div><div style="font-size:0.9rem;margin:5px 0">${txt}</div>${btnHtml}`;
-
             if(st === 'FREE') {
                 div.onclick = () => {
-                    // 模拟点击预约Tab
-                    document.querySelectorAll('.nav-item')[1].click();
+                    document.querySelector('.nav-item[onclick*="reserve"]').click();
                     setTimeout(() => document.getElementById('res-seat').value = s.seat_id, 50);
                 };
-                // 加入下拉框
                 if(!document.querySelector(`#res-seat option[value="${s.seat_id}"]`)) {
                     const opt = document.createElement('option');
                     opt.value = s.seat_id; opt.innerText = s.display;
@@ -191,6 +276,182 @@ async function loadState() {
     } catch(e) {}
 }
 
+// --- 增强报表逻辑 (修复了空数据崩溃的问题) ---
+async function loadStats() {
+    const days = document.getElementById('stats-days').value;
+    const r = await fetch('/api/stats?days=' + days);
+    if(!r.ok) return;
+    const d = await r.json();
+
+    // 1. 更新统计卡片
+    document.getElementById('st-avg-dur').innerText = d.stats.avg_duration;
+    document.getElementById('st-peak').innerText = d.stats.peak_hour;
+    document.getElementById('st-top-seat').innerText = d.stats.top_seat;
+    const devSt = d.stats.device_online ? "🟢 在线" : "🔴 离线";
+    document.getElementById('st-device').innerText = devSt;
+    document.getElementById('st-device').style.color = d.stats.device_online ? '#10b981' : '#ef4444';
+
+    // 2. 环境趋势 (增加空数据检查！)
+    let envChartData = { labels: [], datasets: [] };
+
+    // 只有当有标签数据时，才进行复杂的连线拼接
+    if (d.env && d.env.labels && d.env.labels.length > 0) {
+        const fullLabels = d.env.labels.concat(d.env.pred_labels);
+
+        // 数据拼接优化
+        const lastRealT = d.env.temp.length > 0 ? d.env.temp[d.env.temp.length - 1] : null;
+        const lastRealH = d.env.humi.length > 0 ? d.env.humi[d.env.humi.length - 1] : null;
+
+        const realTemp = d.env.temp.concat(new Array(d.env.pred_labels.length).fill(null));
+        const realHumi = d.env.humi.concat(new Array(d.env.pred_labels.length).fill(null));
+
+        // 计算填充长度，防止 length-1 < 0 导致报错
+        const padLen = Math.max(0, d.env.labels.length - 1);
+
+        let predTempPad = new Array(padLen).fill(null);
+        predTempPad.push(lastRealT);
+        const predTemp = predTempPad.concat(d.env.pred_temp);
+
+        let predHumiPad = new Array(padLen).fill(null);
+        predHumiPad.push(lastRealH);
+        const predHumi = predHumiPad.concat(d.env.pred_humi);
+
+        envChartData = {
+            labels: fullLabels,
+            datasets: [
+                {
+                    label: '温度(℃)', data: realTemp, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true, yAxisID: 'y', tension: 0.4, pointRadius: 0, pointHoverRadius: 4
+                },
+                {
+                    label: '湿度(%)', data: realHumi, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true, yAxisID: 'y1', tension: 0.4, pointRadius: 0, pointHoverRadius: 4
+                },
+                {
+                    label: '预测温度', data: predTemp, borderColor: '#ef4444', borderDash:[5,5],
+                    pointRadius:0, yAxisID: 'y', tension: 0.4
+                },
+                {
+                    label: '预测湿度', data: predHumi, borderColor: '#3b82f6', borderDash:[5,5],
+                    pointRadius:0, yAxisID: 'y1', tension: 0.4
+                }
+            ]
+        };
+    } else {
+        // 数据为空时显示空提示或空坐标轴
+        envChartData = { labels: ["暂无数据"], datasets: [] };
+    }
+
+    renderChart('chart-env', {
+        type: 'line',
+        data: envChartData,
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: { ticks: { maxTicksLimit: 10 } },
+                y: { type: 'linear', display: true, position: 'left', title: {display:true, text:'温度 (℃)', color:'#ef4444'} },
+                y1: { type: 'linear', display: true, position: 'right', grid: {drawOnChartArea: false}, title: {display:true, text:'湿度 (%)', color:'#3b82f6'} }
+            }
+        }
+    });
+
+    // 3. 时段分布 (柱状)
+    const hourLabels = Object.keys(d.heatmap).sort();
+    const hourData = hourLabels.map(k => d.heatmap[k]);
+    renderChart('chart-heat', {
+        type: 'bar',
+        data: {
+            labels: hourLabels.map(h=>h+"点"),
+            datasets: [{
+                label: '预约次数',
+                data: hourData,
+                backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                borderColor: '#8b5cf6',
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // 4. 关联散点图
+    renderChart('chart-scatter', {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: '温度与预约量',
+                data: d.scatter,
+                backgroundColor: '#f59e0b'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { title: {display:true, text:'日均温度 (℃)'} },
+                y: { title: {display:true, text:'日预约量'} }
+            }
+        }
+    });
+
+    // 5. 渲染座位热力地图
+    renderSeatMap(d.seat_map);
+}
+
+function renderChart(id, config) {
+    const ctx = document.getElementById(id).getContext('2d');
+    if(chartInsts[id]) chartInsts[id].destroy();
+    chartInsts[id] = new Chart(ctx, config);
+}
+
+function renderSeatMap(mapData) {
+    const grid = document.getElementById('stats-seat-map');
+    // 复制首页的座位列表结构，但不带点击事件
+    fetch('/api/state').then(r=>r.json()).then(d => {
+        grid.innerHTML = '';
+        const maxVal = Math.max(...Object.values(mapData), 1);
+
+        d.seats.forEach(s => {
+            const count = mapData[s.seat_id] || 0;
+            // 计算热度颜色
+            const ratio = count / maxVal;
+            const lightness = 95 - (ratio * 60);
+            const bg = `hsl(217, 91%, ${lightness}%)`;
+            const color = ratio > 0.5 ? 'white' : '#1e3a8a';
+
+            const div = document.createElement('div');
+            div.className = 'seat-item';
+            div.style.background = bg;
+            div.style.color = color;
+            div.style.borderColor = 'transparent';
+            div.innerHTML = `<div style="font-weight:bold">${s.display}</div><div style="font-size:0.8rem">${count}次</div>`;
+            grid.appendChild(div);
+        });
+    });
+}
+
+// --- 导出 PDF 逻辑 ---
+function exportReportPDF() {
+    const element = document.getElementById('report-content');
+    const opt = {
+      margin:       10,
+      filename:     '自习室数据报表.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true }, // 提高清晰度
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    // 提示
+    const btn = document.querySelector('button[onclick="exportReportPDF()"]');
+    const oldTxt = btn.innerText;
+    btn.innerText = "正在生成...";
+    btn.disabled = true;
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        btn.innerText = oldTxt;
+        btn.disabled = false;
+    });
+}
+
+// --- 其他业务逻辑 (保持不变) ---
 async function loadProfile() {
     const r = await fetch('/api/user/profile');
     if(r.ok) {
@@ -202,7 +463,6 @@ async function loadProfile() {
         document.getElementById('input-uid').value = uid;
     }
 }
-
 async function doBind() {
     const uid = document.getElementById('input-uid').value;
     if(!uid) return alert('请输入UID');
@@ -211,7 +471,6 @@ async function doBind() {
     if(res.ok) { alert('绑定成功'); loadProfile(); }
     else alert(res.error);
 }
-
 async function doReserve() {
     const sid = document.getElementById('res-seat').value;
     if(!sid) return alert('请选择座位');
@@ -223,24 +482,22 @@ async function doReserve() {
     const res = await r.json();
     if(res.ok) {
         alert('预约成功！请在15分钟内刷卡签到');
-        document.querySelectorAll('.nav-item')[0].click(); // 回首页
+        document.querySelector('.nav-item[onclick*="dashboard"]').click();
         loadState();
     } else {
         if(res.need_bind) {
-            if(confirm(res.error + "\n\n是否去绑定？")) document.querySelectorAll('.nav-item')[2].click();
+            if(confirm(res.error + "\n\n是否去绑定？")) document.querySelector('.nav-item[onclick*="profile"]').click();
         } else {
             alert(res.error);
         }
     }
 }
-
 async function doCancel(id) {
     if(confirm('确定取消/签退？')) {
         await fetch('/api/cancel', {method:'POST', body:JSON.stringify({reservation_id:id})});
         loadState();
     }
 }
-
 async function loadUsers() {
     const r = await fetch('/api/admin/users');
     if(!r.ok) return;
