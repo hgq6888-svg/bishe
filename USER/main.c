@@ -192,6 +192,51 @@ static void MQTT_PubEvent(const char *msg_kv) {
     HGQ_ESP8266_MQTTPUB(topic, (char*)msg_kv, 0);
 }
 
+/* ================== 新增：开机动画函数 ================== */
+static void Boot_Animation(void)
+{
+    /* 设置白色背景 */
+    LCD_Clear(WHITE);
+    POINT_COLOR = BLUE;      // 标题颜色
+    BACK_COLOR  = WHITE;
+
+    /* 显示大标题：智慧自习室 */
+    // 假设屏幕宽度240，文字居中
+    Show_Str(60, 80, 200, 24, (u8*)"智慧自习室", 24, 0);
+    
+    /* 显示副标题 */
+    POINT_COLOR = BLACK;
+    Show_Str(55, 110, 200, 16, (u8*)"Smart Study Room", 16, 0);
+
+    /* 绘制进度条边框 */
+    // x1, y1, x2, y2
+    LCD_DrawRectangle(30, 160, 210, 176);
+
+    /* 填充进度条动画 */
+    POINT_COLOR = 0x07E0; // 绿色填充
+    for(int i=0; i<=100; i++)
+    {
+        // 进度条内宽 178px (209-31)
+        u16 len = 178 * i / 100;
+        if(len > 0) {
+            LCD_Fill(31, 161, 31 + len, 175, 0x07E0); // 填充绿色
+        }
+        
+        // 模拟不同阶段的加载速度
+        if(i < 60) delay_ms(10);
+        else delay_ms(20);
+    }
+    
+    /* 加载完成提示 */
+    POINT_COLOR = BLACK;
+    Show_Str(70, 190, 200, 16, (u8*)"正在启动系统...", 16, 0);
+    delay_ms(800); // 停留一下让用户看清
+
+    /* 清屏恢复，准备进入主程序 */
+    LCD_Clear(WHITE);
+    POINT_COLOR = BLACK; // 恢复默认画笔颜色
+}
+
 /* ================== 任务函数声明 ================== */
 void start_task(void *pvParameters);
 void net_task(void *pvParameters);
@@ -216,7 +261,11 @@ int main(void) {
     tp_dev.init(); printf("[自检] 电容触摸屏初始化.....OK\r\n");
     W25QXX_Init(); printf("[自检] W25Q128 Flash初始化..OK\r\n");
     font_init(); printf("[自检] 中文字库系统初始化...OK\r\n");
-    
+  
+		/* === 在这里插入开机动画 === */
+    printf("[SYSTEM] 播放开机动画...\r\n");
+    Boot_Animation();
+	
     printf("[SYSTEM] 正在启动 FreeRTOS 实时操作系统...\r\n");
     printf("========================================\r\n\r\n");
     
