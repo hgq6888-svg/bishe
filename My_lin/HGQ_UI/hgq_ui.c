@@ -162,7 +162,7 @@ void HGQ_UI_DrawFramework(void) {
     Show_Label(x+5, y+25, STR_USER);    
     Show_Label(x+5, y+50, STR_RES_T);   
     Show_Label(x+5, y+75, STR_START_T); 
-    Show_Label(x+5, y+100, STR_REM_T);  
+    //Show_Label(x+5, y+100, STR_REM_T);  
 
     /* 3. �ƹ⿨Ƭ */
     x = GAP + 100 + GAP + 120 + GAP; 
