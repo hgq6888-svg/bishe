@@ -173,10 +173,14 @@ def api_state():
 @app.route("/api/stats")
 def api_stats():
     """
-    增强版报表统计接口 - 优化密度与容错
+    增强版报表统计接口 - 优化密度与容错 - 仅管理员可见
     支持参数: ?days=1|7|30
     """
     if not session.get("user"): return jsonify({"error": "Unauthorized"}), 401
+
+    # --- 新增：权限检查，只有管理员能获取数据 ---
+    if session.get("role") != "admin":
+        return jsonify({"error": "Forbidden: Admin access required"}), 403
 
     try:
         days_param = int(request.args.get("days", 7))
@@ -251,7 +255,6 @@ def api_stats():
 
             pred_labels = ["预测+1", "预测+2", "预测+3"]
         except:
-            # 预测计算出错（如数据异常），保持为空
             pass
 
     env_data = {

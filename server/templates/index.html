@@ -64,7 +64,11 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
 <div class="sidebar">
     <h2>📚 智慧自习室</h2>
     <div class="nav-item active" onclick="switchView('dashboard')"><span>📊</span> 总览大屏</div>
+
+    {% if role == 'admin' %}
     <div class="nav-item" onclick="switchView('stats')"><span>📈</span> 数据报表</div>
+    {% endif %}
+
     <div class="nav-item" onclick="switchView('reserve')"><span>📅</span> 预约中心</div>
     <div class="nav-item" onclick="switchView('profile')"><span>👤</span> 个人中心</div>
     {% if role == 'admin' %}
@@ -95,6 +99,7 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
         </div>
     </div>
 
+    {% if role == 'admin' %}
     <div id="view-stats" class="view-section">
         <div class="stats-toolbar">
             <label>时间范围：</label>
@@ -164,6 +169,7 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
             </div>
         </div>
     </div>
+    {% endif %}
 
     <div id="view-reserve" class="view-section">
         <div class="card" style="max-width:500px; margin:0 auto">
@@ -217,12 +223,18 @@ let currentSeatMap = {}; // 保存座位热度数据
 
 function switchView(id) {
     document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
-    document.getElementById('view-' + id).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    document.getElementById('page-title').innerText = event.currentTarget.innerText.trim().substring(2);
-    if(id === 'profile') loadProfile();
-    if(id === 'stats') loadStats();
+
+    // 增加判断：如果是非管理员试图访问不存在的stats页面，不执行操作
+    const target = document.getElementById('view-' + id);
+    if (target) {
+        target.classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('page-title').innerText = event.currentTarget.innerText.trim().substring(2);
+
+        if(id === 'profile') loadProfile();
+        if(id === 'stats') loadStats();
+    }
 }
 
 // --- 数据加载逻辑 ---
@@ -278,7 +290,11 @@ async function loadState() {
 
 // --- 增强报表逻辑 (修复了空数据崩溃的问题) ---
 async function loadStats() {
-    const days = document.getElementById('stats-days').value;
+    // 增加安全检查：如果页面上没有 stats-days 元素（说明不是管理员），直接返回
+    const daysEl = document.getElementById('stats-days');
+    if (!daysEl) return;
+
+    const days = daysEl.value;
     const r = await fetch('/api/stats?days=' + days);
     if(!r.ok) return;
     const d = await r.json();
