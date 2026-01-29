@@ -217,13 +217,13 @@ static void Boot_Animation(void)
         if(len > 0) {
             LCD_Fill(61, 161, 61 + len, 175, 0x07E0);
         }
-        if(i < 60) delay_ms(10);
-        else delay_ms(20);
+        if(i < 60) delay_ms(5);
+        else delay_ms(10);
     }
     
     POINT_COLOR = BLACK;
     Show_Str(100, 190, 200, 16, (u8*)"正在启动系统...", 16, 0);
-    delay_ms(800); 
+    delay_ms(400); 
 
     LCD_Clear(WHITE);
     POINT_COLOR = BLACK; 
@@ -264,7 +264,7 @@ int main(void) {
 
     strncpy(ui.area_seat, SEAT_NAME_GBK, sizeof(ui.area_seat)-1);
     strcpy(ui.status, "Free"); strcpy(ui.user_str, "--");
-    strcpy(ui.reserve_t, "--"); strcpy(ui.start_t, "--"); strcpy(ui.remain_t, "--");
+    strcpy(ui.reserve_t, "--"); strcpy(ui.start_t, "--");// strcpy(ui.remain_t, "--");
     
     HGQ_UI_DrawFramework(); 
     printf("[自检] 初始界面绘制.........OK\r\n");
