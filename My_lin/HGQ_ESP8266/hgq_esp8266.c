@@ -3,12 +3,10 @@
 #include "delay.h"
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h> // for atoi
+#include <stdlib.h> 
 
-// 修复：增加缓冲区大小，防止MQTT数据进来时冲掉AT指令回包
 static char s_init_buf[512]; 
 
-/* 内部简单接收 */
 static int Wait_Reply(const char *reply, uint32_t timeout_ms)
 {
     uint32_t time = 0;
@@ -47,6 +45,7 @@ static void EscapeString(const char *in, char *out, int out_sz)
     out[j] = '\0';
 }
 
+/* 阻塞式发送 (用于初始化阶段) */
 ESP8266_Status HGQ_ESP8266_MQTTPUB(char *topic, char *message, uint8_t qos)
 {
     char esc[256];
@@ -56,13 +55,14 @@ ESP8266_Status HGQ_ESP8266_MQTTPUB(char *topic, char *message, uint8_t qos)
     return HGQ_ESP8266_SendCmd(cmd, "OK", 500); 
 }
 
+/* 非阻塞快速发送 (用于运行阶段，防止吃掉接收数据) */
 void HGQ_ESP8266_MQTTPUB_Fast(char *topic, char *message, uint8_t qos)
 {
     char esc[256];
     char cmd[512];
     EscapeString(message, esc, sizeof(esc));
     snprintf(cmd, sizeof(cmd), "AT+MQTTPUB=0,\"%s\",\"%s\",%d,0\r\n", topic, esc, qos);
-    HGQ_USART2_SendString(cmd);
+    HGQ_USART2_SendString(cmd); // 只发送，不等待回复
 }
 
 ESP8266_Status HGQ_ESP8266_Init(void) { return ESP8266_OK; } 
@@ -71,7 +71,6 @@ ESP8266_Status HGQ_ESP8266_JoinAP(char *ssid, char *pwd)
 {
     char cmd[128];
     sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\"\r\n", ssid, pwd);
-    /* 修改：超时时间增加到 20000ms (20秒)，增加联网成功率 */
     return HGQ_ESP8266_SendCmd(cmd, "OK", 20000); 
 }
 
@@ -91,11 +90,8 @@ ESP8266_Status HGQ_ESP8266_MQTTSUB(char *topic, uint8_t qos)
     return HGQ_ESP8266_SendCmd(cmd, "OK", 2000);
 }
 
-/* ====== 新增实现 ====== */
-
 void HGQ_ESP8266_EnableNTP(void)
 {
-    /* 开启NTP，时区+8，使用阿里云NTP */
     HGQ_ESP8266_SendCmd("AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n", "OK", 500);
 }
 
@@ -121,15 +117,13 @@ uint8_t HGQ_ESP8266_GetNTPTime(uint8_t *h, uint8_t *m, uint8_t *s)
         time++;
     }
     
-    /* 解析格式: +CIPSNTPTIME:Mon Nov 11 11:11:11 2024 */
     p_start = strstr(s_init_buf, "+CIPSNTPTIME:");
     if(p_start)
     {
         p_start += 13; 
-        p_time = strchr(p_start, ':'); // 找第一个冒号 (HH:MM)
+        p_time = strchr(p_start, ':'); 
         while(p_time)
         {
-            /* 简单验证前后是否为数字 */
             if(p_time > s_init_buf && *(p_time-1) >= '0' && *(p_time-1) <= '9')
             {
                 *h = (uint8_t)atoi(p_time - 2); 
@@ -146,7 +140,6 @@ uint8_t HGQ_ESP8266_GetNTPTime(uint8_t *h, uint8_t *m, uint8_t *s)
     return 0; 
 }
 
-/* 检查是否在线 (通过查询 AP 连接状态) */
 uint8_t HGQ_ESP8266_CheckStatus(void)
 {
     if(HGQ_ESP8266_SendCmd("AT+CWJAP?\r\n", "+CWJAP:", 3000) == ESP8266_OK) {

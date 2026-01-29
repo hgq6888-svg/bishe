@@ -33,7 +33,6 @@ def publish_cmd(cmd_dict):
 
 
 def time_broadcast_task():
-    """定时广播时间"""
     while True:
         time.sleep(60)
         try:
@@ -54,19 +53,33 @@ def on_message(client, userdata, msg):
         payload = msg.payload.decode("utf-8")
         print(f"[MQTT] Recv {topic}: {payload}")
 
-        # 解析 payload (kv格式)
+        # 1. 基础解析 Payload
         data = {}
         for part in payload.split('&'):
             if '=' in part:
                 k, v = part.split('=', 1)
                 data[k] = v.strip()
 
+        # --- 核心修复开始: 如果 Payload 缺字段，从 Topic 补全 ---
+        # Topic 格式: server/{type}/{seat_id}
+        topic_parts = topic.split('/')
+        if len(topic_parts) >= 3:
+            # 如果 data 中没有 type，从 topic[1] 获取 (例如 event)
+            if "type" not in data:
+                data["type"] = topic_parts[1]
+            # 如果 data 中没有 seat_id，从 topic[2] 获取 (例如 A18)
+            if "seat_id" not in data:
+                data["seat_id"] = topic_parts[2]
+        # --- 核心修复结束 ---
+
         seat_id = data.get("seat_id")
         msg_type = data.get("type")
 
-        if not seat_id: return
+        if not seat_id:
+            print("[MQTT] Error: No seat_id found")
+            return
 
-        # 1. 处理同步请求 (sync)
+        # 业务逻辑 1: 同步请求
         if msg_type == "sync":
             print(f"[SYNC] Device {seat_id} requesting sync...")
             publish_cmd({"cmd": "time_sync", "time": get_beijing_time_str()})
@@ -91,69 +104,60 @@ def on_message(client, userdata, msg):
                 conn.close()
             return
 
-        # 2. 处理设备上报的状态/遥测 (state/telemetry) -> 解决“离线”问题
+        # 业务逻辑 2: 状态上报 & 遥测
         if msg_type == "state" or msg_type == "telemetry":
             with db_lock:
                 conn = get_conn()
-                # 只有 state 类型才更新 status
                 if msg_type == "state" and "state" in data:
                     conn.execute("UPDATE seats SET state=?, updated_at=? WHERE seat_id=?",
                                  (data["state"], now_str(), seat_id))
 
-                # 更新遥测数据 (只要有数据传来，就视为在线，写入 telemetry 表)
                 if "temp" in data or "humi" in data or "tof_mm" in data:
-                    # 确保数值有效，防止转换错误
                     temp = float(data.get("temp", 0))
                     humi = int(float(data.get("humi", 0)))
                     lux = int(float(data.get("lux", 0)))
                     tof = int(float(data.get("tof_mm", 0)))
-
                     conn.execute(
                         "INSERT INTO telemetry(seat_id, temp, humi, lux, tof_mm, created_at) VALUES(?,?,?,?,?,?)",
                         (seat_id, temp, humi, lux, tof, now_str()))
-
-                    # 同时更新 seats 表的 updated_at，这对于判断在线状态至关重要！
                     conn.execute("UPDATE seats SET updated_at=? WHERE seat_id=?", (now_str(), seat_id))
 
                 conn.commit()
                 conn.close()
             return
 
-        # 3. 处理业务事件 (event) -> 解决“无法签到”问题
+        # 业务逻辑 3: 刷卡事件 (checkin / checkout)
         if msg_type == "event":
             cmd = data.get("cmd")
             uid_hex = data.get("uid")
+            print(f"[EVENT] Processing {cmd} from {seat_id} with UID {uid_hex}")
 
-            if cmd == "checkin":  # 处理签到
+            if cmd == "checkin":
                 with db_lock:
                     conn = get_conn()
-                    # 查找该座位当前的“有效预约”
                     res = conn.execute(
                         "SELECT id, uid FROM reservations WHERE seat_id=? AND status=? ORDER BY id DESC LIMIT 1",
                         (seat_id, RES_ACTIVE)
                     ).fetchone()
 
                     if res:
-                        # 校验 UID (忽略大小写)
+                        print(f"[CHECKIN] Found reservation, expected: {res['uid']}, got: {uid_hex}")
                         if res["uid"].upper() == uid_hex.upper():
-                            # 签到成功：更新预约状态 -> IN_USE
                             conn.execute("UPDATE reservations SET status=? WHERE id=?", (RES_IN_USE, res["id"]))
                             conn.execute("UPDATE seats SET state=?, updated_at=? WHERE seat_id=?",
                                          (SEAT_IN_USE, now_str(), seat_id))
                             conn.commit()
-                            # 回复设备
                             publish_cmd({"cmd": "checkin_ok", "seat_id": seat_id})
-                            print(f"[EVENT] Checkin SUCCESS for {seat_id}")
+                            print(f"[CHECKIN] Success -> IN_USE")
                         else:
-                            # 签到失败：UID 不匹配
                             publish_cmd({"cmd": "deny", "seat_id": seat_id})
-                            print(f"[EVENT] Checkin DENIED for {seat_id}: UID mismatch")
+                            print(f"[CHECKIN] Denied: UID Mismatch")
                     else:
-                        # 签到失败：无预约
                         publish_cmd({"cmd": "deny", "seat_id": seat_id})
+                        print(f"[CHECKIN] Denied: No active reservation")
                     conn.close()
 
-            elif cmd == "checkout":  # 处理签退
+            elif cmd == "checkout":
                 with db_lock:
                     conn = get_conn()
                     res = conn.execute(
@@ -162,14 +166,12 @@ def on_message(client, userdata, msg):
                     ).fetchone()
 
                     if res and res["uid"].upper() == uid_hex.upper():
-                        # 签退成功：更新预约状态 -> DONE
                         conn.execute("UPDATE reservations SET status=? WHERE id=?", (RES_DONE, res["id"]))
                         conn.execute("UPDATE seats SET state=?, updated_at=? WHERE seat_id=?",
                                      (SEAT_FREE, now_str(), seat_id))
                         conn.commit()
-                        # 回复设备
                         publish_cmd({"cmd": "checkout_ok", "seat_id": seat_id})
-                        print(f"[EVENT] Checkout SUCCESS for {seat_id}")
+                        print(f"[CHECKOUT] Success -> FREE")
                     else:
                         publish_cmd({"cmd": "deny", "seat_id": seat_id})
                     conn.close()
