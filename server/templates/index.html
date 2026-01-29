@@ -32,12 +32,16 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); co
 .seat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
 .seat-item { border: 2px solid #e2e8f0; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; position: relative; background: white; transition: 0.2s; }
 .seat-item:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
-/* 基础状态色 */
 .seat-item.free { border-color: #10b981; background: #ecfdf5; color: #047857; }
 .seat-item.reserved { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
 .seat-item.inuse { border-color: #3b82f6; background: #eff6ff; color: #1e40af; }
 
-/* 报表页面专有样式 */
+/* 报警样式 */
+.alert-row { display: flex; align-items: center; padding: 10px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 6px; margin-bottom: 8px; animation: flash 2s infinite; }
+.alert-row.ghost { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
+@keyframes flash { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+/* 报表页面样式 */
 .stats-toolbar { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 .chart-container { position: relative; height: 300px; width: 100%; }
 .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -116,48 +120,26 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
             <div class="card">
                 <h3>统计概览</h3>
                 <div class="kpi-grid">
-                    <div class="kpi-box">
-                        <div style="font-size:0.9rem;color:#666">平均使用时长</div>
-                        <div class="kpi-val" id="st-avg-dur">--</div>
-                        <div style="font-size:0.8rem">分钟/次</div>
-                    </div>
-                    <div class="kpi-box">
-                        <div style="font-size:0.9rem;color:#666">高峰时段</div>
-                        <div class="kpi-val" id="st-peak">--</div>
-                    </div>
-                    <div class="kpi-box">
-                        <div style="font-size:0.9rem;color:#666">热门座位</div>
-                        <div class="kpi-val" id="st-top-seat">--</div>
-                    </div>
-                    <div class="kpi-box">
-                        <div style="font-size:0.9rem;color:#666">设备状态</div>
-                        <div class="kpi-val" id="st-device">--</div>
-                    </div>
+                    <div class="kpi-box"><div style="font-size:0.9rem;color:#666">平均使用时长</div><div class="kpi-val" id="st-avg-dur">--</div><div style="font-size:0.8rem">分钟/次</div></div>
+                    <div class="kpi-box"><div style="font-size:0.9rem;color:#666">高峰时段</div><div class="kpi-val" id="st-peak">--</div></div>
+                    <div class="kpi-box"><div style="font-size:0.9rem;color:#666">热门座位</div><div class="kpi-val" id="st-top-seat">--</div></div>
+                    <div class="kpi-box"><div style="font-size:0.9rem;color:#666">设备状态</div><div class="kpi-val" id="st-device">--</div></div>
                 </div>
             </div>
-
             <div class="card">
                 <h3>环境趋势与预测 (双Y轴 + 趋势线)</h3>
-                <div class="chart-container">
-                    <canvas id="chart-env"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="chart-env"></canvas></div>
             </div>
-
             <div class="chart-row">
                 <div class="card">
                     <h3>时段分布 (热力统计)</h3>
-                    <div class="chart-container" style="height:250px">
-                        <canvas id="chart-heat"></canvas>
-                    </div>
+                    <div class="chart-container" style="height:250px"><canvas id="chart-heat"></canvas></div>
                 </div>
                 <div class="card">
                     <h3>环境-预约关联 (温度 vs 预约量)</h3>
-                    <div class="chart-container" style="height:250px">
-                        <canvas id="chart-scatter"></canvas>
-                    </div>
+                    <div class="chart-container" style="height:250px"><canvas id="chart-scatter"></canvas></div>
                 </div>
             </div>
-
             <div class="card">
                 <h3>座位热门度地图</h3>
                 <div class="heat-map-legend">
@@ -200,6 +182,11 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
     {% if role == 'admin' %}
     <div id="view-admin" class="view-section">
         <div class="card">
+            <h3>🔔 座位异常监控报警</h3>
+            <div id="alert-box" style="min-height:50px; color:#666">正在扫描异常...</div>
+        </div>
+
+        <div class="card">
             <h3>用户管理</h3>
             <div style="display:flex; gap:10px; margin-bottom:15px">
                 <input id="adm-name" placeholder="用户名" style="margin:0">
@@ -218,13 +205,11 @@ th { background: #f8fafc; font-weight: 600; color: #64748b; }
 <script>
 const CUR_USER = "{{ current_user }}";
 const CUR_ROLE = "{{ role }}";
-let chartInsts = {}; // 保存图表实例
-let currentSeatMap = {}; // 保存座位热度数据
+let chartInsts = {};
+let currentSeatMap = {};
 
 function switchView(id) {
     document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
-
-    // 增加判断：如果是非管理员试图访问不存在的stats页面，不执行操作
     const target = document.getElementById('view-' + id);
     if (target) {
         target.classList.add('active');
@@ -234,17 +219,16 @@ function switchView(id) {
 
         if(id === 'profile') loadProfile();
         if(id === 'stats') loadStats();
+        if(id === 'admin') loadAdminAlerts();
     }
 }
 
-// --- 数据加载逻辑 ---
 async function loadState() {
     try {
         const r = await fetch('/api/state');
         if(r.status === 401) return location.reload();
         const d = await r.json();
 
-        // 首页-环境
         if(d.latest) {
             document.getElementById('val-temp').innerText = d.latest.temp || '--';
             document.getElementById('val-humi').innerText = d.latest.humi || '--';
@@ -252,7 +236,6 @@ async function loadState() {
             document.getElementById('val-time').innerText = (d.latest.created_at||'').split(' ')[1] || '--';
         }
 
-        // 首页-座位
         const grid = document.getElementById('seat-grid');
         const sel = document.getElementById('res-seat');
         grid.innerHTML = '';
@@ -284,22 +267,17 @@ async function loadState() {
             }
             grid.appendChild(div);
         });
-
     } catch(e) {}
 }
 
-// --- 增强报表逻辑 (修复了空数据崩溃的问题) ---
 async function loadStats() {
-    // 增加安全检查：如果页面上没有 stats-days 元素（说明不是管理员），直接返回
     const daysEl = document.getElementById('stats-days');
     if (!daysEl) return;
-
     const days = daysEl.value;
     const r = await fetch('/api/stats?days=' + days);
     if(!r.ok) return;
     const d = await r.json();
 
-    // 1. 更新统计卡片
     document.getElementById('st-avg-dur').innerText = d.stats.avg_duration;
     document.getElementById('st-peak').innerText = d.stats.peak_hour;
     document.getElementById('st-top-seat').innerText = d.stats.top_seat;
@@ -307,60 +285,34 @@ async function loadStats() {
     document.getElementById('st-device').innerText = devSt;
     document.getElementById('st-device').style.color = d.stats.device_online ? '#10b981' : '#ef4444';
 
-    // 2. 环境趋势 (增加空数据检查！)
-    let envChartData = { labels: [], datasets: [] };
-
-    // 只有当有标签数据时，才进行复杂的连线拼接
+    let envChartData = { labels: ["暂无数据"], datasets: [] };
     if (d.env && d.env.labels && d.env.labels.length > 0) {
         const fullLabels = d.env.labels.concat(d.env.pred_labels);
-
-        // 数据拼接优化
         const lastRealT = d.env.temp.length > 0 ? d.env.temp[d.env.temp.length - 1] : null;
         const lastRealH = d.env.humi.length > 0 ? d.env.humi[d.env.humi.length - 1] : null;
 
         const realTemp = d.env.temp.concat(new Array(d.env.pred_labels.length).fill(null));
         const realHumi = d.env.humi.concat(new Array(d.env.pred_labels.length).fill(null));
 
-        // 计算填充长度，防止 length-1 < 0 导致报错
         const padLen = Math.max(0, d.env.labels.length - 1);
-
-        let predTempPad = new Array(padLen).fill(null);
-        predTempPad.push(lastRealT);
+        let predTempPad = new Array(padLen).fill(null); predTempPad.push(lastRealT);
         const predTemp = predTempPad.concat(d.env.pred_temp);
-
-        let predHumiPad = new Array(padLen).fill(null);
-        predHumiPad.push(lastRealH);
+        let predHumiPad = new Array(padLen).fill(null); predHumiPad.push(lastRealH);
         const predHumi = predHumiPad.concat(d.env.pred_humi);
 
         envChartData = {
             labels: fullLabels,
             datasets: [
-                {
-                    label: '温度(℃)', data: realTemp, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    fill: true, yAxisID: 'y', tension: 0.4, pointRadius: 0, pointHoverRadius: 4
-                },
-                {
-                    label: '湿度(%)', data: realHumi, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    fill: true, yAxisID: 'y1', tension: 0.4, pointRadius: 0, pointHoverRadius: 4
-                },
-                {
-                    label: '预测温度', data: predTemp, borderColor: '#ef4444', borderDash:[5,5],
-                    pointRadius:0, yAxisID: 'y', tension: 0.4
-                },
-                {
-                    label: '预测湿度', data: predHumi, borderColor: '#3b82f6', borderDash:[5,5],
-                    pointRadius:0, yAxisID: 'y1', tension: 0.4
-                }
+                { label: '温度(℃)', data: realTemp, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, yAxisID: 'y', tension: 0.4, pointRadius: 0, pointHoverRadius: 4 },
+                { label: '湿度(%)', data: realHumi, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, yAxisID: 'y1', tension: 0.4, pointRadius: 0, pointHoverRadius: 4 },
+                { label: '预测温度', data: predTemp, borderColor: '#ef4444', borderDash:[5,5], pointRadius:0, yAxisID: 'y', tension: 0.4 },
+                { label: '预测湿度', data: predHumi, borderColor: '#3b82f6', borderDash:[5,5], pointRadius:0, yAxisID: 'y1', tension: 0.4 }
             ]
         };
-    } else {
-        // 数据为空时显示空提示或空坐标轴
-        envChartData = { labels: ["暂无数据"], datasets: [] };
     }
 
     renderChart('chart-env', {
-        type: 'line',
-        data: envChartData,
+        type: 'line', data: envChartData,
         options: {
             responsive: true, maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
@@ -372,44 +324,20 @@ async function loadStats() {
         }
     });
 
-    // 3. 时段分布 (柱状)
     const hourLabels = Object.keys(d.heatmap).sort();
     const hourData = hourLabels.map(k => d.heatmap[k]);
     renderChart('chart-heat', {
         type: 'bar',
-        data: {
-            labels: hourLabels.map(h=>h+"点"),
-            datasets: [{
-                label: '预约次数',
-                data: hourData,
-                backgroundColor: 'rgba(139, 92, 246, 0.6)',
-                borderColor: '#8b5cf6',
-                borderWidth: 1
-            }]
-        },
+        data: { labels: hourLabels.map(h=>h+"点"), datasets: [{ label: '预约次数', data: hourData, backgroundColor: 'rgba(139, 92, 246, 0.6)', borderColor: '#8b5cf6', borderWidth: 1 }] },
         options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // 4. 关联散点图
     renderChart('chart-scatter', {
         type: 'scatter',
-        data: {
-            datasets: [{
-                label: '温度与预约量',
-                data: d.scatter,
-                backgroundColor: '#f59e0b'
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            scales: {
-                x: { title: {display:true, text:'日均温度 (℃)'} },
-                y: { title: {display:true, text:'日预约量'} }
-            }
-        }
+        data: { datasets: [{ label: '温度与预约量', data: d.scatter, backgroundColor: '#f59e0b' }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: {display:true, text:'日均温度 (℃)'} }, y: { title: {display:true, text:'日预约量'} } } }
     });
 
-    // 5. 渲染座位热力地图
     renderSeatMap(d.seat_map);
 }
 
@@ -421,53 +349,59 @@ function renderChart(id, config) {
 
 function renderSeatMap(mapData) {
     const grid = document.getElementById('stats-seat-map');
-    // 复制首页的座位列表结构，但不带点击事件
     fetch('/api/state').then(r=>r.json()).then(d => {
         grid.innerHTML = '';
         const maxVal = Math.max(...Object.values(mapData), 1);
-
         d.seats.forEach(s => {
             const count = mapData[s.seat_id] || 0;
-            // 计算热度颜色
             const ratio = count / maxVal;
             const lightness = 95 - (ratio * 60);
             const bg = `hsl(217, 91%, ${lightness}%)`;
             const color = ratio > 0.5 ? 'white' : '#1e3a8a';
-
             const div = document.createElement('div');
             div.className = 'seat-item';
-            div.style.background = bg;
-            div.style.color = color;
-            div.style.borderColor = 'transparent';
+            div.style.background = bg; div.style.color = color; div.style.borderColor = 'transparent';
             div.innerHTML = `<div style="font-weight:bold">${s.display}</div><div style="font-size:0.8rem">${count}次</div>`;
             grid.appendChild(div);
         });
     });
 }
 
-// --- 导出 PDF 逻辑 ---
-function exportReportPDF() {
-    const element = document.getElementById('report-content');
-    const opt = {
-      margin:       10,
-      filename:     '自习室数据报表.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true }, // 提高清晰度
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    // 提示
-    const btn = document.querySelector('button[onclick="exportReportPDF()"]');
-    const oldTxt = btn.innerText;
-    btn.innerText = "正在生成...";
-    btn.disabled = true;
+async function loadAdminAlerts() {
+    const box = document.getElementById('alert-box');
+    if (!box) return;
 
-    html2pdf().set(opt).from(element).save().then(() => {
-        btn.innerText = oldTxt;
-        btn.disabled = false;
-    });
+    const r = await fetch('/api/admin/alerts');
+    if (r.ok) {
+        const d = await r.json();
+        if (d.alerts.length === 0) {
+            box.innerHTML = '<div style="color:#10b981">✅ 当前无异常，运行平稳。</div>';
+        } else {
+            box.innerHTML = '';
+            d.alerts.forEach(a => {
+                const cls = a.type === 'ghost' ? 'ghost' : '';
+                const icon = a.type === 'ghost' ? '⚠️' : '🚨';
+                box.innerHTML += `
+                <div class="alert-row ${cls}">
+                    <div style="font-size:1.2rem; margin-right:10px">${icon}</div>
+                    <div>
+                        <div style="font-weight:bold">${a.name} (${a.id}) - ${a.msg}</div>
+                        <div style="font-size:0.9rem; opacity:0.8">传感器数据: ${a.val}</div>
+                    </div>
+                </div>`;
+            });
+        }
+    }
 }
 
-// --- 其他业务逻辑 (保持不变) ---
+function exportReportPDF() {
+    const element = document.getElementById('report-content');
+    const opt = { margin: 10, filename: '自习室数据报表.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+    const btn = document.querySelector('button[onclick="exportReportPDF()"]');
+    const oldTxt = btn.innerText; btn.innerText = "正在生成..."; btn.disabled = true;
+    html2pdf().set(opt).from(element).save().then(() => { btn.innerText = oldTxt; btn.disabled = false; });
+}
+
 async function loadProfile() {
     const r = await fetch('/api/user/profile');
     if(r.ok) {
@@ -484,17 +418,12 @@ async function doBind() {
     if(!uid) return alert('请输入UID');
     const r = await fetch('/api/user/bind', {method:'POST', body:JSON.stringify({uid})});
     const res = await r.json();
-    if(res.ok) { alert('绑定成功'); loadProfile(); }
-    else alert(res.error);
+    if(res.ok) { alert('绑定成功'); loadProfile(); } else alert(res.error);
 }
 async function doReserve() {
     const sid = document.getElementById('res-seat').value;
     if(!sid) return alert('请选择座位');
-    const r = await fetch('/api/reserve', {
-        method:'POST', body:JSON.stringify({
-            seat_id: sid, minutes: document.getElementById('res-min').value
-        })
-    });
+    const r = await fetch('/api/reserve', { method:'POST', body:JSON.stringify({ seat_id: sid, minutes: document.getElementById('res-min').value }) });
     const res = await r.json();
     if(res.ok) {
         alert('预约成功！请在15分钟内刷卡签到');
@@ -503,9 +432,7 @@ async function doReserve() {
     } else {
         if(res.need_bind) {
             if(confirm(res.error + "\n\n是否去绑定？")) document.querySelector('.nav-item[onclick*="profile"]').click();
-        } else {
-            alert(res.error);
-        }
+        } else { alert(res.error); }
     }
 }
 async function doCancel(id) {
@@ -521,15 +448,11 @@ async function loadUsers() {
     const tb = document.getElementById('user-table');
     tb.innerHTML = '';
     d.users.forEach(u => {
-        tb.innerHTML += `<tr><td>${u.username}</td><td>${u.uid||'-'}</td><td>${u.role}</td>
-        <td><button class="del" onclick="delUser(${u.id})">删除</button></td></tr>`;
+        tb.innerHTML += `<tr><td>${u.username}</td><td>${u.uid||'-'}</td><td>${u.role}</td><td><button class="del" onclick="delUser(${u.id})">删除</button></td></tr>`;
     });
 }
 async function admAddUser() {
-    await fetch('/api/admin/users/add', {method:'POST', body:JSON.stringify({
-        username: document.getElementById('adm-name').value,
-        uid: document.getElementById('adm-uid').value
-    })});
+    await fetch('/api/admin/users/add', {method:'POST', body:JSON.stringify({ username: document.getElementById('adm-name').value, uid: document.getElementById('adm-uid').value })});
     loadUsers();
 }
 async function delUser(id) {
@@ -542,7 +465,10 @@ async function delUser(id) {
 // 初始化
 loadState();
 setInterval(loadState, 2000);
-if(CUR_ROLE === 'admin') loadUsers();
+if(CUR_ROLE === 'admin') {
+    loadUsers();
+    setInterval(loadAdminAlerts, 3000);
+}
 </script>
 </body>
 </html>

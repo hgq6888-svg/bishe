@@ -108,7 +108,6 @@ const u8 STR_POP_WARN[] = {0xC7,0xEB,0xCF,0xC8,0xB5,0xE3,0xBB,0xF7,0xC6,0xC1,0xC
 
 /* ================== 辅助函数实现 ================== */
 
-/* 队列操作 */
 static int TaskQueue_Push(const char *cmd_str) {
     uint16_t next = (g_task_queue.head + 1) % TASK_QUEUE_SIZE;
     if (next == g_task_queue.tail) return 0;
@@ -125,7 +124,6 @@ static int TaskQueue_Pop(char *out_buf) {
     return 1;
 }
 
-/* 字符串/逻辑工具 */
 static void Topic_Make(char *out, u16 out_sz, const char *suffix) {
     snprintf(out, out_sz, "server/%s/%s", suffix, DEV_ID);
 }
@@ -169,7 +167,6 @@ static int Calc_Auto_Brightness(int lux) {
     return bri;
 }
 
-/* MQTT 发布封装 */
 static void MQTT_PubTelemetry(void) {
     char topic[64], msg[196];
     Topic_Make(topic, sizeof(topic), "telemetry");
@@ -186,55 +183,50 @@ static void MQTT_PubState(void) {
     HGQ_ESP8266_MQTTPUB(topic, msg, 0);
 }
 
+static void MQTT_PubSync(void) {
+    char topic[64], msg[64];
+    Topic_Make(topic, sizeof(topic), "state"); 
+    snprintf(msg, sizeof(msg), "type=sync&seat_id=%s", DEV_ID);
+    HGQ_ESP8266_MQTTPUB(topic, msg, 0);
+}
+
 static void MQTT_PubEvent(const char *msg_kv) {
     char topic[64];
     Topic_Make(topic, sizeof(topic), "event");
     HGQ_ESP8266_MQTTPUB(topic, (char*)msg_kv, 0);
 }
 
-/* ================== 新增：开机动画函数 ================== */
+/* ================== 开机动画 ================== */
 static void Boot_Animation(void)
 {
-    /* 设置白色背景 */
     LCD_Clear(WHITE);
-    POINT_COLOR = BLUE;      // 标题颜色
+    POINT_COLOR = BLUE;      
     BACK_COLOR  = WHITE;
 
-    /* 显示大标题：智慧自习室 */
-    // 假设屏幕宽度240，文字居中
-    Show_Str(60, 80, 200, 24, (u8*)"智慧自习室", 24, 0);
+    Show_Str(90, 80, 200, 24, (u8*)"智慧自习室", 24, 0);
     
-    /* 显示副标题 */
     POINT_COLOR = BLACK;
-    Show_Str(55, 110, 200, 16, (u8*)"Smart Study Room", 16, 0);
+    Show_Str(85, 110, 200, 16, (u8*)"Smart Study Room", 16, 0);
 
-    /* 绘制进度条边框 */
-    // x1, y1, x2, y2
-    LCD_DrawRectangle(30, 160, 210, 176);
+    LCD_DrawRectangle(60, 160, 240, 176);
 
-    /* 填充进度条动画 */
-    POINT_COLOR = 0x07E0; // 绿色填充
+    POINT_COLOR = 0x07E0; 
     for(int i=0; i<=100; i++)
     {
-        // 进度条内宽 178px (209-31)
         u16 len = 178 * i / 100;
         if(len > 0) {
-            LCD_Fill(31, 161, 31 + len, 175, 0x07E0); // 填充绿色
+            LCD_Fill(61, 161, 61 + len, 175, 0x07E0);
         }
-        
-        // 模拟不同阶段的加载速度
         if(i < 60) delay_ms(10);
         else delay_ms(20);
     }
     
-    /* 加载完成提示 */
     POINT_COLOR = BLACK;
-    Show_Str(70, 190, 200, 16, (u8*)"正在启动系统...", 16, 0);
-    delay_ms(800); // 停留一下让用户看清
+    Show_Str(100, 190, 200, 16, (u8*)"正在启动系统...", 16, 0);
+    delay_ms(800); 
 
-    /* 清屏恢复，准备进入主程序 */
     LCD_Clear(WHITE);
-    POINT_COLOR = BLACK; // 恢复默认画笔颜色
+    POINT_COLOR = BLACK; 
 }
 
 /* ================== 任务函数声明 ================== */
@@ -246,7 +238,6 @@ void rfid_task(void *pvParameters);
 
 /* ================== 主函数 ================== */
 int main(void) {
-    /* 1. 基础硬件初始化 */
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); 
     delay_init(168); 
     uart_init(115200);      
@@ -261,33 +252,40 @@ int main(void) {
     tp_dev.init(); printf("[自检] 电容触摸屏初始化.....OK\r\n");
     W25QXX_Init(); printf("[自检] W25Q128 Flash初始化..OK\r\n");
     font_init(); printf("[自检] 中文字库系统初始化...OK\r\n");
-  
-		/* === 在这里插入开机动画 === */
+    
     printf("[SYSTEM] 播放开机动画...\r\n");
     Boot_Animation();
-	
+    
     printf("[SYSTEM] 正在启动 FreeRTOS 实时操作系统...\r\n");
     printf("========================================\r\n\r\n");
     
-    /* 2. 外设与UI初始化 */
     HGQ_UI_Init(); 
+    printf("[自检] UI图形界面初始化.....OK\r\n");
+
     strncpy(ui.area_seat, SEAT_NAME_GBK, sizeof(ui.area_seat)-1);
     strcpy(ui.status, "Free"); strcpy(ui.user_str, "--");
-    strcpy(ui.reserve_t, "--"); strcpy(ui.start_t, "--"); //strcpy(ui.remain_t, "--");
+    strcpy(ui.reserve_t, "--"); strcpy(ui.start_t, "--"); strcpy(ui.remain_t, "--");
     
     HGQ_UI_DrawFramework(); 
+    printf("[自检] 初始界面绘制.........OK\r\n");
     
     HGQ_AHT20_Init(); 
+    printf("[自检] AHT20温湿度传感器....OK\r\n");
+
     g_bh1750_ok = !HGQ_BH1750_Init(0x23);
+    if(g_bh1750_ok) printf("[自检] BH1750光照传感器.....OK\r\n");
+    else            printf("[自检] BH1750光照传感器.....异常!\r\n");
+
     HGQ_RC522_Init(); 
+    printf("[自检] RC522射频模块........OK\r\n");
+
     HGQ_VL53L0X_I2C_Init(); 
     HGQ_VL53L0X_Begin(&g_tof, 0x29);
+    printf("[自检] VL53L0X激光测距......OK\r\n");
     
-    /* 3. 创建互斥量 */
     xMutexUI = xSemaphoreCreateMutex();
     xMutexESP = xSemaphoreCreateMutex();
 
-    /* 4. 创建开始任务 */
     xTaskCreate((TaskFunction_t )start_task, (const char* )"start_task", (uint16_t )START_STK_SIZE, (void* )NULL, (UBaseType_t )START_TASK_PRIO, (TaskHandle_t* )&StartTask_Handler);
     
     vTaskStartScheduler();
@@ -306,7 +304,6 @@ void start_task(void *pvParameters) {
     taskEXIT_CRITICAL(); 
 }
 
-/* 网络连接辅助函数 */
 static void Network_Connect_Flow(void) {
     printf("[网络] 开始执行联网流程...\r\n");
     xSemaphoreTake(xMutexUI, portMAX_DELAY);
@@ -354,8 +351,12 @@ static void Network_Connect_Flow(void) {
         return;
     }
     
+    printf("[网络] 启动 NTP 网络校时...\r\n");
     HGQ_ESP8266_EnableNTP();
-    MQTT_PubState();
+
+    printf("[网络] 发送状态同步请求 (SYNC)...\r\n");
+    MQTT_PubSync(); 
+    
     xSemaphoreGive(xMutexESP);
     
     xSemaphoreTake(xMutexUI, portMAX_DELAY);
@@ -364,7 +365,6 @@ static void Network_Connect_Flow(void) {
     printf("[网络] 联网完成.\r\n");
 }
 
-/* 网络任务 */
 void net_task(void *pvParameters) {
     Network_Connect_Flow();
     
@@ -411,6 +411,7 @@ void net_task(void *pvParameters) {
                     g_time_h = atoi(t_buf); g_time_m = atoi(t_buf+3); g_time_s = atoi(t_buf+6);
                     sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
                     g_need_ui_refresh = 1;
+                    printf("[校时] 服务器时间同步成功: %02d:%02d\r\n", g_time_h, g_time_m);
                 }
             }
             else if(KV_Get(kv, "seat_id", sid, sizeof(sid)) && strcmp(sid, DEV_ID) == 0) {
@@ -427,7 +428,6 @@ void net_task(void *pvParameters) {
                         if(strlen(t_buf) >= 16) { strncpy(ui.reserve_t, t_buf+11, 5); ui.reserve_t[5]=0; }
                     }
                     
-                    // 关键修复：确保状态更新为 RESERVED
                     strncpy(g_state, "RESERVED", sizeof(g_state)-1);
                     strncpy(ui.status, "Rsrv(15m)", sizeof(ui.status)-1);
                     
@@ -435,8 +435,8 @@ void net_task(void *pvParameters) {
                     MQTT_PubState();
                     xSemaphoreGive(xMutexESP);
                     
-                    g_need_ui_refresh = 1; // 触发刷新
-                    printf("[预约] 收到预约指令，状态变更为 RESERVED\r\n");
+                    g_need_ui_refresh = 1; 
+                    printf("[预约] 状态已同步：RESERVED\r\n");
                 }
                 else if(strcmp(cmd_val, "checkin_ok") == 0) {
                     sprintf(ui.start_t, "%02d:%02d", g_time_h, g_time_m);
@@ -447,6 +447,7 @@ void net_task(void *pvParameters) {
                     MQTT_PubState();
                     xSemaphoreGive(xMutexESP);
                     g_need_ui_refresh = 1;
+                    printf("[签到] 状态已同步：IN_USE\r\n");
                 }
                 else if(strcmp(cmd_val, "release") == 0 || strcmp(cmd_val, "checkout_ok") == 0) {
                     g_expect_uid[0] = 0;
@@ -485,14 +486,17 @@ void net_task(void *pvParameters) {
 
         if(++cnt_sync >= 1200) { // 60s
             cnt_sync = 0;
-            if(g_mqtt_ok && g_time_str[0] == '-') {
+            // 修复：只要网络正常，就允许 NTP 同步，不再判断当前时间是否有效
+            if(g_mqtt_ok) {
                 xSemaphoreTake(xMutexESP, portMAX_DELAY);
                 uint8_t h, m, s;
                 if(HGQ_ESP8266_GetNTPTime(&h, &m, &s)) {
                     xSemaphoreTake(xMutexUI, portMAX_DELAY);
                     g_time_h = h; g_time_m = m; g_time_s = s;
                     sprintf(g_time_str, "%02d:%02d", g_time_h, g_time_m);
+                    g_need_ui_refresh = 1;
                     xSemaphoreGive(xMutexUI);
+                    printf("[校时] NTP 时间更新: %02d:%02d\r\n", h, m);
                 }
                 xSemaphoreGive(xMutexESP);
             }
@@ -502,7 +506,6 @@ void net_task(void *pvParameters) {
     }
 }
 
-/* UI 任务 - 关键修改区域 */
 void ui_task(void *pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     static uint8_t s_last_touch = 0;
@@ -522,28 +525,22 @@ void ui_task(void *pvParameters) {
             xSemaphoreGive(xMutexUI);
         }
 
-        /* 触摸处理 - 增加调试信息 */
         u8 is_touched = tp_dev.scan(0);
         if(is_touched && !s_last_touch) {
             u16 x = tp_dev.x[0], y = tp_dev.y[0];
-            printf("[UI] Touch Detected: x=%d, y=%d\r\n", x, y); // 调试：打印坐标
+            printf("[UI] Touch: x=%d, y=%d\r\n", x, y);
             
             xSemaphoreTake(xMutexUI, portMAX_DELAY);
             if(g_op_mode != OP_NORMAL) {
                 g_op_mode = OP_NORMAL; g_force_redraw = 1;
             } else {
                 int changed = 0;
-                // 检测按钮点击
                 if(HGQ_UI_TouchBtn_Check(x, y)) {
-                    printf("[UI] Main Button Pressed! State: %s\r\n", g_state); // 调试：确认按钮被触发
-                    
+                    printf("[UI] Button Pressed. State: %s\r\n", g_state);
                     if(strcmp(g_state, "IN_USE") == 0) {
                         g_op_mode = OP_WAIT_CHECKOUT; HGQ_UI_ShowPopup((char*)STR_POP_OUT);
                     } else {
-                        // 无论是 FREE 还是 RESERVED，都进入这里
-                        g_op_mode = OP_WAIT_CHECKIN; 
-                        HGQ_UI_ShowPopup((char*)STR_POP_IN);
-                        printf("[UI] Popup Triggered: Check In\r\n"); // 调试：确认弹窗触发
+                        g_op_mode = OP_WAIT_CHECKIN; HGQ_UI_ShowPopup((char*)STR_POP_IN);
                     }
                     g_popup_ts = 15;
                 } else {
@@ -567,7 +564,6 @@ void ui_task(void *pvParameters) {
         }
         s_last_touch = is_touched;
 
-        /* 界面刷新 */
         xSemaphoreTake(xMutexUI, portMAX_DELAY);
         if(g_force_redraw) {
             g_force_redraw = 0;
@@ -588,7 +584,6 @@ void ui_task(void *pvParameters) {
     }
 }
 
-/* 传感器任务 */
 void sensor_task(void *pvParameters) {
     while(1) {
         float tc, rh;
@@ -612,7 +607,6 @@ void sensor_task(void *pvParameters) {
     }
 }
 
-/* RFID 任务 */
 void rfid_task(void *pvParameters) {
     while(1) {
         uint8_t uid_len, ret;
