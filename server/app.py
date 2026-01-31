@@ -477,6 +477,62 @@ def api_cancel():
     return jsonify({"ok": True})
 
 
+# --- [新增] App 专用认证接口 ---
+
+@app.route("/api/login", methods=["POST"])
+def api_login_json():
+    # 强制解析 JSON 数据
+    data = request.get_json(force=True, silent=True) or {}
+    u = data.get("username")
+    p = data.get("password")
+
+    if not u or not p:
+        return jsonify({"ok": False, "error": "用户名或密码为空"}), 400
+
+    conn = database.get_conn()
+    user = conn.execute("SELECT * FROM users WHERE username=?", (u,)).fetchone()
+    conn.close()
+
+    if not user:
+        return jsonify({"ok": False, "error": "用户不存在"}), 400
+
+    # 简单密码比对 (与您原有逻辑保持一致)
+    db_pass = user["password"] if user["password"] else "123456"
+    if p == db_pass:
+        session["user"] = u
+        session["role"] = user["role"]
+        # 登录成功，Session Cookie 会自动由 Flask 处理
+        return jsonify({"ok": True, "username": u, "role": user["role"]})
+    else:
+        return jsonify({"ok": False, "error": "密码错误"}), 400
+
+
+@app.route("/api/register", methods=["POST"])
+def api_register_json():
+    data = request.get_json(force=True, silent=True) or {}
+    u = data.get("username")
+    p = data.get("password")
+
+    if not u or not p:
+        return jsonify({"ok": False, "error": "信息不完整"}), 400
+
+    conn = database.get_conn()
+    # 检查重名
+    if conn.execute("SELECT id FROM users WHERE username=?", (u,)).fetchone():
+        conn.close()
+        return jsonify({"ok": False, "error": "用户名已存在"}), 400
+
+    try:
+        conn.execute("INSERT INTO users(username, password, role, created_at) VALUES(?,?,?,?)",
+                     (u, p, 'user', database.now_str()))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "msg": "注册成功"})
+    except Exception as e:
+        conn.close()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # --- 管理员接口 ---
 @app.route("/api/admin/users", methods=["GET"])
 def api_admin_users():
