@@ -1,127 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F5F5F5"
-    android:padding="20dp"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/tv_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="智能座位预约系统"
-        android:textColor="#333333"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="20dp"/>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_status"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#FFFFFF"
-        app:layout_constraintTop_toBottomOf="@id/tv_title">
+        android:layout_height="match_parent"
+        android:background="@color/background"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/primary"
+            app:cardElevation="4dp"
+            android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="环境实时监测"
-                android:textColor="#888888"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/tv_status"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="等待连接..."
-                android:textColor="#2196F3"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+                android:orientation="vertical"
+                android:padding="20dp">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_action"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#FFFFFF"
-        app:layout_constraintTop_toBottomOf="@id/card_status">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="环境实时监测"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="14sp"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="20dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="座位 A18"
-                android:textColor="#333333"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="15dp"/>
+                    <TextView
+                        android:id="@+id/tv_temp"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="26°C"
+                        android:textColor="@color/white"
+                        android:textSize="28sp"
+                        android:textStyle="bold"/>
 
-            <Button
-                android:id="@+id/btn_reserve"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="立即预约 (2小时)"
-                android:textSize="16sp"
-                android:backgroundTint="#4CAF50"
-                android:textColor="#FFFFFF" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+                    <TextView
+                        android:id="@+id/tv_humi"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="55%"
+                        android:textColor="@color/white"
+                        android:textSize="28sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="运行日志"
-        android:textSize="12sp"
-        android:textColor="#999999"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@id/card_action"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="5dp"
-        android:background="#E0E0E0"
-        android:padding="10dp"
-        app:layout_constraintTop_toBottomOf="@id/card_action"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintVertical_bias="1.0"
-        app:layout_constraintHeight_min="100dp">
+                <TextView
+                    android:id="@+id/tv_last_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="更新于: 刚刚"
+                    android:textColor="#AAFFFFFF"
+                    android:textSize="12sp"
+                    android:layout_marginTop="5dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <TextView
-            android:id="@+id/tv_log"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="座位预约 (下拉刷新)"
+            android:textColor="@color/text_dark"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginBottom="10dp"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="系统已启动..."
-            android:textSize="12sp"
-            android:fontFamily="monospace"
-            android:textColor="#555555" />
-    </ScrollView>
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+            <TextView android:text="🟢 空闲 " android:textColor="@color/text_light"/>
+            <TextView android:text="🟡 已约 " android:textColor="@color/text_light"/>
+            <TextView android:text="🔴 占用 " android:textColor="@color/text_light"/>
+        </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
