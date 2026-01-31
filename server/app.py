@@ -533,6 +533,58 @@ def api_register_json():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+# --- [修正版] 获取所有座位列表接口 ---
+@app.route("/api/seats", methods=["GET"])
+def api_seats():
+    conn = database.get_conn()
+    cursor = conn.cursor()
+
+    try:
+        # [修改点 1] 将 id 改为 seat_id
+        cursor.execute("SELECT seat_id, status FROM seats ORDER BY seat_id")
+        rows = cursor.fetchall()
+
+        seat_list = []
+        for row in rows:
+            seat_list.append({
+                "id": row[0],  # 这里取出的 row[0] 就是 seat_id
+                "status": row[1]
+            })
+
+        # 如果数据库为空，初始化数据
+        if not seat_list:
+            _init_default_seats()
+            return api_seats()  # 重新获取
+
+        return jsonify({"seats": seat_list})
+
+    except Exception as e:
+        # 如果出错（比如表还没建），尝试初始化一下
+        print(f"Error getting seats: {e}")
+        conn.close()
+        return jsonify({"seats": [], "error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+# 辅助函数：初始化默认座位
+def _init_default_seats():
+    conn = database.get_conn()
+    cursor = conn.cursor()
+    try:
+        # 生成 A01 到 A20 的座位
+        default_seats = [(f"A{i:02d}", 0) for i in range(1, 21)]
+
+        # [修改点 2] 插入语句也必须用 seat_id
+        cursor.executemany("INSERT OR IGNORE INTO seats (seat_id, status) VALUES (?, ?)", default_seats)
+        conn.commit()
+        print("已自动初始化默认座位数据 (seat_id)")
+    except Exception as e:
+        print(f"初始化座位失败: {e}")
+    finally:
+        conn.close()
+
 # --- 管理员接口 ---
 @app.route("/api/admin/users", methods=["GET"])
 def api_admin_users():

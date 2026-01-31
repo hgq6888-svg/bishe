@@ -43,8 +43,9 @@
                     <TextView
                         android:id="@+id/tv_temp"
                         android:layout_width="0dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="26°C"
+                        android:text="--°C"
                         android:textColor="@color/white"
                         android:textSize="28sp"
                         android:textStyle="bold"/>
@@ -52,8 +53,9 @@
                     <TextView
                         android:id="@+id/tv_humi"
                         android:layout_width="0dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="55%"
+                        android:text="--%"
                         android:textColor="@color/white"
                         android:textSize="28sp"
                         android:textStyle="bold"/>
@@ -84,9 +86,27 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="10dp">
-            <TextView android:text="🟢 空闲 " android:textColor="@color/text_light"/>
-            <TextView android:text="🟡 已约 " android:textColor="@color/text_light"/>
-            <TextView android:text="🔴 占用 " android:textColor="@color/text_light"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🟢 空闲  "
+                android:textColor="@color/text_light"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🟡 已约  "
+                android:textColor="@color/text_light"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔴 占用"
+                android:textColor="@color/text_light"
+                android:textSize="12sp"/>
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
