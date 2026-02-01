@@ -533,55 +533,64 @@ def api_register_json():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
-# --- [修正版] 获取所有座位列表接口 ---
+# -----------------------------------------------------------
+# 将以下代码覆盖到 server/app.py 的最末尾
+# -----------------------------------------------------------
+
 @app.route("/api/seats", methods=["GET"])
 def api_seats():
     conn = database.get_conn()
     cursor = conn.cursor()
 
     try:
-        # [修改点 1] 将 id 改为 seat_id
+        # [关键修正] 使用 seat_id 查询，而不是 id
         cursor.execute("SELECT seat_id, status FROM seats ORDER BY seat_id")
         rows = cursor.fetchall()
 
         seat_list = []
         for row in rows:
+            # 数据库里的 seat_id (例如 "A01")
+            # 映射为 App 需要的 "id" 字段
+            # 注意：这里我们用 row['seat_id'] 或 row[0] 取值
+            s_id = row[0]
+            s_status = row[1]
             seat_list.append({
-                "id": row[0],  # 这里取出的 row[0] 就是 seat_id
-                "status": row[1]
+                "id": s_id,
+                "status": s_status
             })
 
-        # 如果数据库为空，初始化数据
+        # 如果数据库是空的，说明是第一次运行，自动创建20个座位
         if not seat_list:
+            print("⚠️ 数据库为空，正在初始化 20 个默认座位...")
             _init_default_seats()
-            return api_seats()  # 重新获取
+            # 递归调用自己，重新获取刚才创建的数据
+            return api_seats()
 
         return jsonify({"seats": seat_list})
 
     except Exception as e:
-        # 如果出错（比如表还没建），尝试初始化一下
-        print(f"Error getting seats: {e}")
-        conn.close()
-        return jsonify({"seats": [], "error": str(e)}), 500
+        print(f"❌ 获取座位失败: {e}")
+        # 返回空列表，防止 App 崩溃
+        return jsonify({"seats": [], "error": str(e)})
     finally:
         if conn:
             conn.close()
 
 
-# 辅助函数：初始化默认座位
 def _init_default_seats():
+    """ 自动往数据库里插入 A01 - A20 """
     conn = database.get_conn()
     cursor = conn.cursor()
     try:
-        # 生成 A01 到 A20 的座位
+        # 生成 A01 到 A20 的座位数据
         default_seats = [(f"A{i:02d}", 0) for i in range(1, 21)]
 
-        # [修改点 2] 插入语句也必须用 seat_id
+        # [关键修正] 插入语句也必须用 seat_id
         cursor.executemany("INSERT OR IGNORE INTO seats (seat_id, status) VALUES (?, ?)", default_seats)
         conn.commit()
-        print("已自动初始化默认座位数据 (seat_id)")
+        print("✅ 已成功初始化 20 个座位 (A01-A20)")
     except Exception as e:
-        print(f"初始化座位失败: {e}")
+        print(f"❌ 初始化座位失败: {e}")
     finally:
         conn.close()
 

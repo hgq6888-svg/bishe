@@ -32,6 +32,10 @@ android {
 }
 
 dependencies {
+    // 必须确保有这个 Material 库，用于底部导航栏
+    implementation("com.google.android.material:material:1.11.0")
+    // 用于 Fragment 管理
+    implementation("androidx.fragment:fragment:1.6.2")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")

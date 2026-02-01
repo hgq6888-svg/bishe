@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#F3F4F6">
+
+    <ImageView
+        android:src="@android:drawable/sym_def_app_icon"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"/>
+
+    <TextView
+        android:id="@+id/tv_username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User"
+        android:textSize="24sp"
+        android:layout_gravity="center"
+        android:textStyle="bold"
+        android:textColor="#333333"/>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        app:cardBackgroundColor="#E0F2F1"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="15dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🪪 绑定实体卡"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView
+                android:id="@+id/tv_uid_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前未绑定"
+                android:textColor="#F44336"
+                android:layout_marginBottom="10dp"/>
+
+            <EditText
+                android:id="@+id/et_uid"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="输入卡号 UID"
+                android:background="@android:color/white"
+                android:padding="10dp"
+                android:textColor="#333333"/>
+
+            <Button
+                android:id="@+id/btn_bind"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="保存绑定"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="#009688"
+                android:textColor="@android:color/white"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <Button
+        android:id="@+id/btn_logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="退出登录"
+        android:backgroundTint="#F44336"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="50dp"/>
+
+</LinearLayout>
