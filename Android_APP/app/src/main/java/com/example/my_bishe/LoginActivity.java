@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -28,7 +27,7 @@ import okhttp3.Response;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etUser, etPass;
-    private Button btnLogin, btnReg, btnIp;
+    private Button btnLogin, btnReg; // 已移除 btnIp
 
     // Cookie 管理 (保持 Session)
     private static final HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
@@ -52,6 +51,8 @@ public class LoginActivity extends AppCompatActivity {
             .readTimeout(10, TimeUnit.SECONDS)
             .build();
 
+    // === 默认服务器 IP 配置 ===
+    // 如果需要改 IP，直接修改这里的字符串即可
     public static String BASE_URL = "http://192.168.0.104:5000";
 
     @Override
@@ -63,26 +64,25 @@ public class LoginActivity extends AppCompatActivity {
         etPass = findViewById(R.id.et_password);
         btnLogin = findViewById(R.id.btn_login);
         btnReg = findViewById(R.id.btn_register);
-        btnIp = findViewById(R.id.btn_set_ip);
 
-        // 读取配置
+        // 读取上次保存的用户名
         SharedPreferences sp = getSharedPreferences("config", Context.MODE_PRIVATE);
+        etUser.setText(sp.getString("username", ""));
+
+        // 尝试读取可能存在的旧 IP 配置，优先使用保存的配置，如果没有则用默认的
         String savedIp = sp.getString("ip", "192.168.0.104");
         BASE_URL = "http://" + savedIp + ":5000";
-        etUser.setText(sp.getString("username", ""));
 
         // 登录逻辑
         btnLogin.setOnClickListener(v -> doLogin());
 
-        // === [修改点] 注册按钮改为跳转到独立界面 ===
+        // 注册跳转
         if (btnReg != null) {
             btnReg.setOnClickListener(v -> {
                 Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
                 startActivity(intent);
             });
         }
-
-        if (btnIp != null) btnIp.setOnClickListener(v -> showIpDialog());
     }
 
     private void doLogin() {
@@ -129,24 +129,5 @@ public class LoginActivity extends AppCompatActivity {
                 runOnUiThread(() -> Toast.makeText(this, "网络错误: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         }).start();
-    }
-
-    private void showIpDialog() {
-        final EditText et = new EditText(this);
-        SharedPreferences sp = getSharedPreferences("config", Context.MODE_PRIVATE);
-        et.setText(sp.getString("ip", "192.168.0.104"));
-        new AlertDialog.Builder(this)
-                .setTitle("设置服务器IP")
-                .setView(et)
-                .setPositiveButton("保存", (d, w) -> {
-                    String ip = et.getText().toString().trim();
-                    if(!TextUtils.isEmpty(ip)){
-                        sp.edit().putString("ip", ip).apply();
-                        BASE_URL = "http://" + ip + ":5000";
-                        Toast.makeText(this, "IP已更新", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("取消", null)
-                .show();
     }
 }
