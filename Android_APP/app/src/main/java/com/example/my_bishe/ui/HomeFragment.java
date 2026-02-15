@@ -2,7 +2,6 @@ package com.example.my_bishe.ui;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -25,6 +24,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.android.material.bottomnavigation.BottomNavigationView; // 必须导入
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,13 +44,12 @@ public class HomeFragment extends Fragment {
     private final List<Seat> seatList = new ArrayList<>();
     private final Gson gson = new Gson();
 
-    // 自动刷新
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable refreshRunnable = new Runnable() {
         @Override
         public void run() {
             fetchData(false);
-            handler.postDelayed(this, 3000); // 3秒刷新一次
+            handler.postDelayed(this, 3000);
         }
     };
 
@@ -139,17 +138,16 @@ public class HomeFragment extends Fragment {
                                 if (obj.has("state")) rawState = obj.get("state").getAsString();
 
                                 boolean hasRes = false;
-                                int resId = -1;       // 预约单号
-                                String resUser = "";  // 预约人
-                                String resStatus = ""; // 预约状态
+                                int resId = -1;
+                                String resUser = "";
+                                String resStatus = "";
 
-                                // 解析详细预约信息
                                 if (obj.has("active_reservation") && !obj.get("active_reservation").isJsonNull()) {
                                     hasRes = true;
                                     JsonObject r = obj.getAsJsonObject("active_reservation");
                                     if(r.has("id")) resId = r.get("id").getAsInt();
                                     resUser = getStringVal(r, "user", "");
-                                    resStatus = getStringVal(r, "status", ""); // 1=Active, 2=InUse
+                                    resStatus = getStringVal(r, "status", "");
                                 }
 
                                 seatList.add(new Seat(id, rawState, hasRes, resId, resUser, resStatus));
@@ -173,7 +171,6 @@ public class HomeFragment extends Fragment {
         return def;
     }
 
-    // === 新增：发送取消/签退请求 ===
     private void sendCancelRequest(int reservationId) {
         JsonObject json = new JsonObject();
         json.addProperty("reservation_id", reservationId);
@@ -188,7 +185,7 @@ public class HomeFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         if (s.contains("true") || s.contains("ok")) {
                             Toast.makeText(getContext(), "操作成功", Toast.LENGTH_SHORT).show();
-                            fetchData(true); // 刷新状态
+                            fetchData(true);
                         } else {
                             Toast.makeText(getContext(), "失败: " + s, Toast.LENGTH_SHORT).show();
                         }
@@ -208,15 +205,11 @@ public class HomeFragment extends Fragment {
         boolean hasReservation;
         int resId;
         String resUser;
-        String resStatus; // 1=Active(已预约), 2=InUse(使用中)
+        String resStatus;
 
         public Seat(String id, String rawState, boolean hasReservation, int resId, String resUser, String resStatus) {
-            this.id = id;
-            this.rawState = rawState;
-            this.hasReservation = hasReservation;
-            this.resId = resId;
-            this.resUser = resUser;
-            this.resStatus = resStatus;
+            this.id = id; this.rawState = rawState; this.hasReservation = hasReservation;
+            this.resId = resId; this.resUser = resUser; this.resStatus = resStatus;
         }
     }
 
@@ -232,45 +225,48 @@ public class HomeFragment extends Fragment {
             Seat seat = seatList.get(position);
             holder.tvId.setText(seat.id);
 
-            // === 颜色优先级逻辑 ===
             int color;
             String s = seat.rawState.toUpperCase();
             boolean isInUse = s.equals("2") || s.contains("USE") || s.contains("BUSY") || s.contains("OCCUPY");
 
-            // 1. 红色：使用中
-            if (isInUse) {
-                color = Color.parseColor("#EF4444");
-            }
-            // 2. 黄色：有预约
-            else if (seat.hasReservation) {
-                color = Color.parseColor("#FFC107");
-            }
-            // 3. 绿色：空闲
-            else {
-                color = Color.parseColor("#10B981");
-            }
+            if (isInUse) color = Color.parseColor("#EF4444");
+            else if (seat.hasReservation) color = Color.parseColor("#FFC107");
+            else color = Color.parseColor("#10B981");
             holder.cardView.setCardBackgroundColor(color);
 
-            // === 新增：点击事件逻辑 ===
-            // 获取当前登录用户
             SharedPreferences sp = holder.itemView.getContext().getSharedPreferences("config", Context.MODE_PRIVATE);
             String currentUser = sp.getString("username", "");
 
-            // 如果该座位被当前用户预约或使用中，允许点击操作
+            // 1. 如果是自己的座位：显示管理弹窗（取消/签退）
             if (seat.hasReservation && seat.resUser.equals(currentUser)) {
                 holder.cardView.setOnClickListener(v -> {
                     String actionText = isInUse ? "强制签退" : "取消预约";
                     String msg = "当前座位: " + seat.id + "\n状态: " + (isInUse ? "使用中" : "已预约") + "\n确定要" + actionText + "吗？";
-
                     new AlertDialog.Builder(v.getContext())
                             .setTitle("座位管理")
                             .setMessage(msg)
                             .setPositiveButton(actionText, (dialog, which) -> sendCancelRequest(seat.resId))
-                            .setNegativeButton("再看看", null)
+                            .setNegativeButton("返回", null)
                             .show();
                 });
-            } else {
-                // 别人的座位或空闲座位，暂不处理点击（或者可以弹窗显示“空闲”/“他人占用”）
+            }
+            // 2. [新增] 如果是空闲座位：跳转到预约页面
+            else if (!isInUse && !seat.hasReservation) {
+                holder.cardView.setOnClickListener(v -> {
+                    // 保存目标座位号到 SharedPreferences
+                    sp.edit().putString("intent_seat_id", seat.id).apply();
+
+                    // 切换到预约 Tab
+                    if (getActivity() != null) {
+                        View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
+                        if (bottomNav instanceof BottomNavigationView) {
+                            ((BottomNavigationView) bottomNav).setSelectedItemId(R.id.nav_reserve);
+                        }
+                    }
+                });
+            }
+            // 3. 别人的座位：无操作
+            else {
                 holder.cardView.setOnClickListener(null);
             }
         }

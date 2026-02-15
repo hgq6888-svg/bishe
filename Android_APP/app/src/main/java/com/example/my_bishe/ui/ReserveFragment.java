@@ -1,5 +1,7 @@
 package com.example.my_bishe.ui;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,6 +41,7 @@ public class ReserveFragment extends Fragment {
         adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, freeSeats);
         spinner.setAdapter(adapter);
 
+        // 每次进入页面时加载最新数据
         loadFreeSeats();
         btnSubmit.setOnClickListener(view -> doReserve());
         return v;
@@ -53,7 +56,6 @@ public class ReserveFragment extends Fragment {
                 if (json.has("seats")) {
                     for (JsonElement e : json.getAsJsonArray("seats")) {
                         JsonObject s = e.getAsJsonObject();
-                        // 只添加空闲座位
                         String state = "";
                         if (s.has("state")) state = s.get("state").getAsString().toUpperCase();
 
@@ -64,7 +66,24 @@ public class ReserveFragment extends Fragment {
                 }
                 if(getActivity()!=null) getActivity().runOnUiThread(() -> {
                     adapter.notifyDataSetChanged();
-                    if(freeSeats.isEmpty()) Toast.makeText(getContext(), "暂无空闲座位", Toast.LENGTH_SHORT).show();
+                    if(freeSeats.isEmpty()) {
+                        Toast.makeText(getContext(), "暂无空闲座位", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // === 新增：自动选中从首页跳转过来的座位 ===
+                        SharedPreferences sp = getContext().getSharedPreferences("config", Context.MODE_PRIVATE);
+                        String targetId = sp.getString("intent_seat_id", "");
+                        if (!targetId.isEmpty()) {
+                            int index = freeSeats.indexOf(targetId);
+                            if (index >= 0) {
+                                spinner.setSelection(index);
+                                Toast.makeText(getContext(), "已选择座位: " + targetId, Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getContext(), "该座位已被占用或不可用", Toast.LENGTH_SHORT).show();
+                            }
+                            // 清除标记，防止下次手动进入时误触发
+                            sp.edit().remove("intent_seat_id").apply();
+                        }
+                    }
                 });
             } catch (Exception e) { e.printStackTrace(); }
         }).start();
@@ -95,9 +114,7 @@ public class ReserveFragment extends Fragment {
                 if(getActivity()!=null) getActivity().runOnUiThread(() -> {
                     if (s.contains("true") || s.contains("ok")) {
                         Toast.makeText(getContext(), "预约成功！", Toast.LENGTH_SHORT).show();
-
-                        // === 关键修改：预约成功后，自动跳转回首页看状态 ===
-                        // 通过查找 BottomNavigationView 来模拟点击“首页”按钮
+                        // 预约成功后跳回首页
                         View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
                         if (bottomNav != null) {
                             bottomNav.post(() -> ((com.google.android.material.bottomnavigation.BottomNavigationView) bottomNav).setSelectedItemId(R.id.nav_home));
