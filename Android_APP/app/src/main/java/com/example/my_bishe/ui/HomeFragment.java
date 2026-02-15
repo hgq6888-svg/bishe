@@ -20,11 +20,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.my_bishe.LoginActivity;
 import com.example.my_bishe.R;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.android.material.bottomnavigation.BottomNavigationView; // 必须导入
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,6 +48,7 @@ public class HomeFragment extends Fragment {
     private final Runnable refreshRunnable = new Runnable() {
         @Override
         public void run() {
+            // 自动刷新时，不显示 loading 动画，以免打扰用户
             fetchData(false);
             handler.postDelayed(this, 3000);
         }
@@ -78,7 +79,7 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         updateUserInfo();
-        fetchData(true);
+        fetchData(true); // 进入页面时主动刷新一次
         handler.postDelayed(refreshRunnable, 3000);
     }
 
@@ -100,12 +101,16 @@ public class HomeFragment extends Fragment {
         if (showLoading) swipeRefresh.setRefreshing(true);
 
         String baseUrl = LoginActivity.BASE_URL;
-        if (baseUrl == null || baseUrl.isEmpty()) {
+        // 双重保险：如果 LoginActivity 的静态变量为空，从本地读取
+        if (baseUrl == null || baseUrl.isEmpty() || baseUrl.equals("http://null:5000")) {
             if (getContext() != null) {
                 SharedPreferences sp = getContext().getSharedPreferences("config", Context.MODE_PRIVATE);
                 String ip = sp.getString("ip", "192.168.0.104");
                 baseUrl = "http://" + ip + ":5000";
-            } else return;
+            } else {
+                if(showLoading) swipeRefresh.setRefreshing(false);
+                return;
+            }
         }
 
         Request request = new Request.Builder().url(baseUrl + "/api/state").get().build();
@@ -118,6 +123,7 @@ public class HomeFragment extends Fragment {
 
                     if (getActivity() == null) return;
                     getActivity().runOnUiThread(() -> {
+                        // 更新环境数据
                         if (json.has("latest") && !json.get("latest").isJsonNull()) {
                             JsonObject lat = json.getAsJsonObject("latest");
                             tvTemp.setText(getStringVal(lat, "temp", "--") + "°C");
@@ -125,9 +131,11 @@ public class HomeFragment extends Fragment {
                             tvLux.setText(getStringVal(lat, "lux", "--") + " Lx");
                         }
 
+                        // 更新时间
                         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
                         tvTime.setText(sdf.format(new Date()));
 
+                        // 更新座位列表
                         seatList.clear();
                         if (json.has("seats")) {
                             JsonArray arr = json.getAsJsonArray("seats");
@@ -154,13 +162,27 @@ public class HomeFragment extends Fragment {
                             }
                         }
                         adapter.notifyDataSetChanged();
+
+                        // === [关键] 成功后停止转圈 ===
                         swipeRefresh.setRefreshing(false);
                     });
+                } else {
+                    // === [关键] 服务器返回错误（如 401, 500）时也要停止转圈 ===
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "获取数据失败: " + response.code(), Toast.LENGTH_SHORT).show();
+                            swipeRefresh.setRefreshing(false);
+                        });
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                // === [关键] 网络异常时也要停止转圈 ===
                 if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> swipeRefresh.setRefreshing(false));
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "网络错误，请检查IP", Toast.LENGTH_SHORT).show();
+                        swipeRefresh.setRefreshing(false);
+                    });
                 }
             }
         }).start();
@@ -229,15 +251,15 @@ public class HomeFragment extends Fragment {
             String s = seat.rawState.toUpperCase();
             boolean isInUse = s.equals("2") || s.contains("USE") || s.contains("BUSY") || s.contains("OCCUPY");
 
-            if (isInUse) color = Color.parseColor("#EF4444");
-            else if (seat.hasReservation) color = Color.parseColor("#FFC107");
-            else color = Color.parseColor("#10B981");
+            if (isInUse) color = Color.parseColor("#EF4444"); // 红色
+            else if (seat.hasReservation) color = Color.parseColor("#FFC107"); // 黄色
+            else color = Color.parseColor("#10B981"); // 绿色
             holder.cardView.setCardBackgroundColor(color);
 
             SharedPreferences sp = holder.itemView.getContext().getSharedPreferences("config", Context.MODE_PRIVATE);
             String currentUser = sp.getString("username", "");
 
-            // 1. 如果是自己的座位：显示管理弹窗（取消/签退）
+            // 1. 自己的座位：弹窗取消/签退
             if (seat.hasReservation && seat.resUser.equals(currentUser)) {
                 holder.cardView.setOnClickListener(v -> {
                     String actionText = isInUse ? "强制签退" : "取消预约";
@@ -250,13 +272,10 @@ public class HomeFragment extends Fragment {
                             .show();
                 });
             }
-            // 2. [新增] 如果是空闲座位：跳转到预约页面
+            // 2. 空闲座位：跳转预约
             else if (!isInUse && !seat.hasReservation) {
                 holder.cardView.setOnClickListener(v -> {
-                    // 保存目标座位号到 SharedPreferences
                     sp.edit().putString("intent_seat_id", seat.id).apply();
-
-                    // 切换到预约 Tab
                     if (getActivity() != null) {
                         View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
                         if (bottomNav instanceof BottomNavigationView) {
@@ -265,7 +284,7 @@ public class HomeFragment extends Fragment {
                     }
                 });
             }
-            // 3. 别人的座位：无操作
+            // 3. 别人的座位
             else {
                 holder.cardView.setOnClickListener(null);
             }
